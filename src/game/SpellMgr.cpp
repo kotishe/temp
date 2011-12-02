@@ -3805,7 +3805,7 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
         {
             // Fear
             if (spellproto->IsFitToFamilyMask(UI64LIT(0x40840000000)))
-                return DIMINISHING_WARLOCK_FEAR;
+                return DIMINISHING_FEAR;
             // Curses/etc
             if (spellproto->IsFitToFamilyMask(UI64LIT(0x00080000000)))
                 return DIMINISHING_LIMITONLY;
