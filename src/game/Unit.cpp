@@ -2939,6 +2939,8 @@ float Unit::GetUnitDodgeChance() const
     {
         if(((Creature const*)this)->IsTotem())
             return 0.0f;
+		else if ( ((Creature const*)this)->IsShadowfiend() )
+			return 90.0f;
         else
         {
             float dodge = 5.0f;

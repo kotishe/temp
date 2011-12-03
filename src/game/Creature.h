@@ -479,6 +479,7 @@ class MANGOS_DLL_SPEC Creature : public Unit
         bool IsPet() const { return m_subtype == CREATURE_SUBTYPE_PET; }
         bool IsTotem() const { return m_subtype == CREATURE_SUBTYPE_TOTEM; }
         bool IsTemporarySummon() const { return m_subtype == CREATURE_SUBTYPE_TEMPORARY_SUMMON; }
+		bool IsShadowfiend() const { return m_creatureInfo->Entry == 19668; }
 
         bool IsCorpse() const { return getDeathState() ==  CORPSE; }
         bool IsDespawned() const { return getDeathState() ==  DEAD; }

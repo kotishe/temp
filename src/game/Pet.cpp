@@ -1181,7 +1181,8 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
 					case CLASS_PRIEST:
                     {
                                                             //65% damage bonus of priest's shadow damage
-						//TODO: Fix dodge rating. Must be ~90%
+						//TODO: Make in rigt way througth trigger system adding bonus damage prom player spell damade
+						// in dynamic way
                         float val = owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + SPELL_SCHOOL_SHADOW) * 0.65f;
                         if(val < 0)
                             val = 0;
