@@ -2120,7 +2120,7 @@ void Spell::EffectTriggerSpell(SpellEffectIndex effIndex)
             }
             return;
         }
-        // Priest Shadowfiend (34433) need apply mana gain trigger aura on pet
+        // Priest Shadowfiend (34433)
         case 41967:
         {
             if (Unit *pet = unitTarget->GetPet())

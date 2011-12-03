@@ -1178,13 +1178,29 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
                         SetBonusDamage( int32(val));
                         break;
                     }
+					case CLASS_PRIEST:
+                    {
+                                                            //65% damage bonus of priest's shadow damage
+						//TODO: Fix dodge rating. Must be ~90%
+                        float val = owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + SPELL_SCHOOL_SHADOW) * 0.65f;
+                        if(val < 0)
+                            val = 0;
+                        SetBonusDamage( int32(val) );
+						createResistance[SPELL_SCHOOL_HOLY]   = 0;
+						createResistance[SPELL_SCHOOL_FIRE]   = 365;
+						createResistance[SPELL_SCHOOL_NATURE] = 365;
+						createResistance[SPELL_SCHOOL_FROST]  = 365;
+						createResistance[SPELL_SCHOOL_SHADOW] = 365;
+						createResistance[SPELL_SCHOOL_ARCANE] = 365;
+                        break;
+                    }
                     default:
                         break;
                 }
             }
 
-            SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float(petlevel - (petlevel / 4)) );
-            SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float(petlevel + (petlevel / 4)) );
+            SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float(petlevel - (petlevel / 4) + GetBonusDamage()) );
+            SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float(petlevel + (petlevel / 4) + GetBonusDamage()) );
 
             //SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, float(cinfo->attackpower));
 
@@ -1260,6 +1276,31 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
             SetUInt32Value(UNIT_FIELD_PETEXPERIENCE, 0);
             SetUInt32Value(UNIT_FIELD_PETNEXTLEVELEXP, 1000);
 
+			if(owner->GetTypeId() == TYPEID_PLAYER)
+			{
+				switch(owner->getClass())
+				{
+					case CLASS_DRUID:
+					{
+						PetLevelInfo const* pInfo = sObjectMgr.GetPetLevelInfo(creature_ID, petlevel);
+						if (!pInfo)
+							SetCreateHealth(30 + 30*petlevel);
+						//15% damage bonus of druids's nature damage
+						float val = owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + SPELL_SCHOOL_NATURE) * 0.15f;
+						if(val < 0)
+							val = 0;
+						SetBonusDamage( int32(val) );
+						SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float(petlevel - (petlevel / 4) + GetBonusDamage()) );
+						SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float(petlevel + (petlevel / 4) + GetBonusDamage()) );
+						break;
+					}
+					case CLASS_SHAMAN:
+					{
+						SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float(petlevel - (petlevel / 4)));
+						SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float(petlevel + (petlevel / 4)));
+						break;
+					}
+				}
             SetCreateMana(28 + 10*petlevel);
             SetCreateHealth(28 + 30*petlevel);
 
