@@ -3846,8 +3846,6 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
         return DIMINISHING_FEAR;
     if (mechanic & (1<<(MECHANIC_CHARM-1)))
         return DIMINISHING_CHARM;
-    if (mechanic & (1<<(MECHANIC_SILENCE-1)))
-        return DIMINISHING_SILENCE;
     if (mechanic & (1<<(MECHANIC_DISARM-1)))
         return DIMINISHING_DISARM;
     if (mechanic & (1<<(MECHANIC_FREEZE-1)))
@@ -3903,12 +3901,11 @@ DiminishingReturnsType GetDiminishingReturnsGroupType(DiminishingGroup group)
         case DIMINISHING_FEAR:
         case DIMINISHING_CHARM:
         case DIMINISHING_POLYMORPH:
-        case DIMINISHING_SILENCE:
         case DIMINISHING_DISARM:
         case DIMINISHING_DEATHCOIL:
         case DIMINISHING_FREEZE:
         case DIMINISHING_BANISH:
-        case DIMINISHING_WARLOCK_FEAR:
+		case DIMINISHING_WARLOCK_FEAR:
         case DIMINISHING_KNOCKOUT:
             return DRTYPE_PLAYER;
         default:
