@@ -1302,6 +1302,7 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
 						break;
 					}
 				}
+			}
             SetCreateMana(28 + 10*petlevel);
             SetCreateHealth(28 + 30*petlevel);
 
