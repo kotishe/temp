@@ -3798,7 +3798,7 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
                 return DIMINISHING_BLIND_CYCLONE;
 			// Gouge
 			else if ( spellproto->IsFitToFamilyMask(UI64LIT(0x00000000008)) )
-				return return DIMINISHING_POLYMORPH;
+				return DIMINISHING_POLYMORPH;
             break;
         }
         case SPELLFAMILY_WARLOCK:
