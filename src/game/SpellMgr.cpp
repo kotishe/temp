@@ -3796,13 +3796,9 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
             // Blind
             else if (spellproto->IsFitToFamilyMask(UI64LIT(0x00001000000)))
                 return DIMINISHING_BLIND_CYCLONE;
-            break;
-        }
-        case SPELLFAMILY_HUNTER:
-        {
-            // Freezing trap
-            if (spellproto->IsFitToFamilyMask(UI64LIT(0x00000000008)))
-                return DIMINISHING_FREEZE;
+			// Gouge
+			else if ( spellproto->IsFitToFamilyMask(UI64LIT(0x00000000008)) )
+				return return DIMINISHING_POLYMORPH;
             break;
         }
         case SPELLFAMILY_WARLOCK:
@@ -3843,6 +3839,8 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
     if (mechanic & (1<<(MECHANIC_SLEEP-1)))
         return DIMINISHING_SLEEP;
     if (mechanic & (1<<(MECHANIC_POLYMORPH-1)))
+        return DIMINISHING_POLYMORPH;
+	if (mechanic & (1<<(MECHANIC_SAPPED-1)))
         return DIMINISHING_POLYMORPH;
     if (mechanic & (1<<(MECHANIC_ROOT-1)))
         return triggered ? DIMINISHING_TRIGGER_ROOT : DIMINISHING_CONTROL_ROOT;
