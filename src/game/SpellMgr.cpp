@@ -3848,12 +3848,8 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
         return DIMINISHING_FEAR;
     if (mechanic & (1<<(MECHANIC_CHARM-1)))
         return DIMINISHING_CHARM;
-    if (mechanic & (1<<(MECHANIC_DISARM-1)))
-        return DIMINISHING_DISARM;
     if (mechanic & (1<<(MECHANIC_FREEZE-1)))
         return DIMINISHING_FREEZE;
-    if (mechanic & ((1<<(MECHANIC_KNOCKOUT-1))|(1<<(MECHANIC_SAPPED-1))))
-        return DIMINISHING_KNOCKOUT;
     if (mechanic & (1<<(MECHANIC_BANISH-1)))
         return DIMINISHING_BANISH;
     if (mechanic & (1<<(MECHANIC_HORROR-1)))
