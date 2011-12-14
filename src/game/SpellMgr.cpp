@@ -3809,6 +3809,10 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
             // Curses/etc
             if (spellproto->IsFitToFamilyMask(UI64LIT(0x00080000000)))
                 return DIMINISHING_LIMITONLY;
+			//Unstable affliction
+			if ( spellproto->IsFitToFamilyMask(UI64LIT(0x00000000100)) )
+				return DIMINISHING_SILENCE;
+			
             break;
         }
         case SPELLFAMILY_DRUID:
@@ -3825,6 +3829,13 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
                 return DIMINISHING_LIMITONLY;
             break;
         }
+		case SPELLFAMILY_PALADIN:
+		{
+			//Repentance
+			if ( spellproto->IsFitToFamilyMask(UI64LIT(0x00000000004)) )
+				return DIMINISHING_POLYMORPH;
+			break;
+		}
         default:
             break;
     }
@@ -3848,6 +3859,8 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
         return DIMINISHING_FEAR;
     if (mechanic & (1<<(MECHANIC_CHARM-1)))
         return DIMINISHING_CHARM;
+	if (mechanic & (1<<(MECHANIC_DISARM-1)))
+        return DIMINISHING_DISARM;
     if (mechanic & (1<<(MECHANIC_FREEZE-1)))
         return DIMINISHING_FREEZE;
     if (mechanic & (1<<(MECHANIC_BANISH-1)))
