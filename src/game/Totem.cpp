@@ -187,7 +187,19 @@ void Totem::SetTypeBySummonSpell(SpellEntry const * spellProto)
 
 bool Totem::IsImmuneToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex index) const
 {
-    switch(spellInfo->Effect[index])
+    //Check for Mana Spring & Healing Stream totems
+	switch(spellInfo->SpellFamilyName)
+	{
+		case SPELLFAMILY_SHAMAN:
+			if ( spellInfo->IsFitToFamilyMask(UI64LIT(0x00000002000)) ||
+				spellInfo->IsFitToFamilyMask(UI64LIT(0x00000004000)) )
+				return false;
+			break;
+		default:
+			break;
+	}
+	
+	switch(spellInfo->Effect[index])
     {
         case SPELL_EFFECT_ATTACK_ME:
         // immune to any type of regeneration effects hp/mana etc.
