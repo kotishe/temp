@@ -1144,10 +1144,10 @@ void Player::Update( uint32 update_diff, uint32 p_time )
         setAttackTimer(RANGED_ATTACK, (update_diff >= ranged_att ? 0 : ranged_att - update_diff) );
     }
 
-    if(uint32 off_att = getAttackTimer(OFF_ATTACK))
+    /*if(uint32 off_att = getAttackTimer(OFF_ATTACK))
     {
         setAttackTimer(OFF_ATTACK, (update_diff >= off_att ? 0 : off_att - update_diff) );
-    }
+    }*/
 
     time_t now = time (NULL);
 

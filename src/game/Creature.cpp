@@ -354,7 +354,9 @@ bool Creature::UpdateEntry(uint32 Entry, Team team, const CreatureData *data /*=
     uint32 attackTimer = GetCreatureInfo()->baseattacktime;
 
     SetAttackTime(BASE_ATTACK,  attackTimer);
-    SetAttackTime(OFF_ATTACK,   attackTimer - attackTimer/4);
+	//attackTimer - attackTimer/4 wtf???
+    //SetAttackTime(OFF_ATTACK,   attackTimer - attackTimer/4);
+	SetAttackTime(OFF_ATTACK,   attackTimer);
     SetAttackTime(RANGED_ATTACK,GetCreatureInfo()->rangeattacktime);
 
     uint32 unitFlags = GetCreatureInfo()->unit_flags;

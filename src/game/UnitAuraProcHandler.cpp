@@ -1764,7 +1764,7 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit *pVictim, uint32 d
                 }
 
                 // 1 tick/sec * 6 sec = 6 ticks
-                basepoints[0] /= 6;
+                basepoints[0] /= 4;
 
                 trigger_spell_id = 12721;
                 break;

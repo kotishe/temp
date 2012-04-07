@@ -385,9 +385,9 @@ bool Unit::UpdateMeleeAttackingState()
         if (haveOffhandWeapon() && isAttackReady(OFF_ATTACK))
         {
             // prevent base and off attack in same time, delay attack at 0.2 sec
-            uint32 base_att = getAttackTimer(BASE_ATTACK);
-            if (base_att < ATTACK_DISPLAY_DELAY)
-                setAttackTimer(BASE_ATTACK,ATTACK_DISPLAY_DELAY);
+            //uint32 base_att = getAttackTimer(BASE_ATTACK);
+            //if (base_att < ATTACK_DISPLAY_DELAY)
+            //    setAttackTimer(BASE_ATTACK,ATTACK_DISPLAY_DELAY);
             // do attack
             AttackerStateUpdate(victim, OFF_ATTACK);
             resetAttackTimer(OFF_ATTACK);
