@@ -187,12 +187,14 @@ void Totem::SetTypeBySummonSpell(SpellEntry const * spellProto)
 
 bool Totem::IsImmuneToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex index) const
 {
-    //Check for Mana Spring & Healing Stream totems
+    
 	switch(spellInfo->SpellFamilyName)
 	{
+		//Check for Shaman Mana Spring & Healing Stream totems
+		//They have periodic regenerate effect, but function close before it get
+		//that check. This check - better way to fix this problem.
 		case SPELLFAMILY_SHAMAN:
-			if ( spellInfo->IsFitToFamilyMask(UI64LIT(0x00000002000)) ||
-				spellInfo->IsFitToFamilyMask(UI64LIT(0x00000004000)) )
+			if ( spellInfo->IsFitToFamilyMask(UI64LIT(0x000260CE000)) )
 				return false;
 			break;
 		default:
@@ -216,16 +218,43 @@ bool Totem::IsImmuneToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
 
     if (!IsPositiveSpell(spellInfo))
     {
-        // immune to all negative auras
+        switch(spellInfo->SpellFamilyName)
+		{
+			//Totems not immune to dots. Check dots for each class.
+			case SPELLFAMILY_WARLOCK:
+				if ( spellInfo->IsFitToFamilyMask(UI64LIT(0x0000000040B)) )
+					return false;
+				break;
+			
+			case SPELLFAMILY_PRIEST:
+				if ( spellInfo->IsFitToFamilyMask(UI64LIT(0x00000108008)) )
+					return false;
+				break;
+
+			case SPELLFAMILY_DRUID:
+				if ( spellInfo->IsFitToFamilyMask(UI64LIT(0x00000200002)) )
+					return false;
+				break;
+
+			case SPELLFAMILY_HUNTER:
+				if ( spellInfo->IsFitToFamilyMask(UI64LIT(0x00000004000)) )
+					return false;
+				break;
+			default:
+				break;
+		}
+		
+		// immune to all negative auras
         if (IsAuraApplyEffect(spellInfo, index))
             return true;
     }
     else
     {
         // immune to any type of regeneration auras hp/mana etc.
-        if (IsPeriodicRegenerateEffect(spellInfo, index))
+        if (IsPeriodicRegenerateEffect(spellInfo, index)){
             return true;
-    }
+		}
+	}
 
     return Creature::IsImmuneToSpellEffect(spellInfo, index);
 }
