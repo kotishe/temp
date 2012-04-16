@@ -6645,8 +6645,9 @@ m_permanent(false), m_isRemovedOnShapeLost(true), m_deleted(false), m_in_use(0)
                             !(m_spellProto->Attributes & SPELL_ATTR_NOT_SHAPESHIFT));
 	
 	//Do not allow remove WeakenedSoul when shifting out Shadowform &
-	//Berserker Rage when switching stances.
-	if ( GetId() == 6788 || GetId() == 18499 ){
+	//Berserker Rage/Sweeping Strikes when switching stances.
+	if ( GetId() == 6788 || GetId() == 18499 || GetId() == 12328 || GetId() == 18765 
+		|| GetId() ==35429 || GetId() == 26654 ){
 		m_isRemovedOnShapeLost = false;
 	}
 
