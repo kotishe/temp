@@ -5405,6 +5405,7 @@ void Aura::HandleShapeshiftBoosts(bool apply)
         case FORM_SPIRITOFREDEMPTION:
             spellId1 = 27792;
             spellId2 = 27795;                               // must be second, this important at aura remove to prevent to early iterator invalidation.
+			//spellId3 = 27827;
             break;
         case FORM_GHOSTWOLF:
         case FORM_AMBIENT:
@@ -6642,6 +6643,12 @@ m_permanent(false), m_isRemovedOnShapeLost(true), m_deleted(false), m_in_use(0)
                               m_spellProto->Stances &&
                             !(m_spellProto->AttributesEx2 & SPELL_ATTR_EX2_NOT_NEED_SHAPESHIFT) &&
                             !(m_spellProto->Attributes & SPELL_ATTR_NOT_SHAPESHIFT));
+	
+	//Do not allow remove WeakenedSoul when shifting out Shadowform &
+	//Berserker Rage when switching stances.
+	if ( GetId() == 6788 || GetId() == 18499 ){
+		m_isRemovedOnShapeLost = false;
+	}
 
     Unit* unitCaster = caster && caster->isType(TYPEMASK_UNIT) ? (Unit*)caster : NULL;
 
