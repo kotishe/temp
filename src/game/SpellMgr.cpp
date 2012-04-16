@@ -440,6 +440,9 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
         {
             if (spellInfo->SpellFamilyFlags & UI64LIT(0x00008000010000))
                 return SPELL_POSITIVE_SHOUT;
+			// Sunder Armor (vs Expose Armor)
+			if (spellInfo->IsFitToFamilyMask(UI64LIT(0x00000000004000)))
+                return SPELL_ARMOR_REDUCE;
 
             break;
         }
@@ -500,6 +503,13 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
             if (IsElementalShield(spellInfo))
                 return SPELL_ELEMENTAL_SHIELD;
 
+            break;
+        }
+		case SPELLFAMILY_ROGUE:
+        {
+            // Expose Armor (vs Sunder Armor)
+            if (spellInfo->IsFitToFamilyMask(UI64LIT(0x00000000080000)))
+                return SPELL_ARMOR_REDUCE;
             break;
         }
 
@@ -593,6 +603,8 @@ bool IsSingleFromSpellSpecificPerTarget(SpellSpecific spellSpec1,SpellSpecific s
             return spellSpec2==SPELL_FOOD
                 || spellSpec2==SPELL_DRINK
                 || spellSpec2==SPELL_FOOD_AND_DRINK;
+		case SPELL_ARMOR_REDUCE:
+            return spellSpec1 == spellSpec2;
         default:
             return false;
     }
