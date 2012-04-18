@@ -3347,6 +3347,17 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
     // Fill possible dispel list
     std::list <std::pair<SpellAuraHolder* ,uint32> > dispel_list;
 
+	//Cause caster & hostile targe to enter combat by dispeling it.
+	if (unitTarget->IsHostileTo(m_caster))
+    {
+        m_caster->SetInCombatWith(unitTarget);
+        unitTarget->SetInCombatWith(m_caster);
+    }
+	//Caster enter combat if friendly target in combat.
+	else if ( unitTarget->IsFriendlyTo(m_caster) && unitTarget->isInCombat() ){
+		m_caster->SetInCombatWith(unitTarget);
+	}
+
     // Create dispel mask by dispel type
     uint32 dispel_type = m_spellInfo->EffectMiscValue[eff_idx];
     uint32 dispelMask  = GetDispellMask( DispelType(dispel_type) );
@@ -3379,8 +3390,8 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
         std::list < uint32 > fail_list;                     // spell_id
 
         // some spells have effect value = 0 and all from its by meaning expect 1
-        if(!damage)
-            damage = 1;
+        /*if(!damage)
+            damage = 1;*/
 
         // Dispel N = damage buffs (or while exist buffs for dispel)
         for (int32 count=0; count < damage && !dispel_list.empty(); ++count)
