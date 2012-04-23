@@ -1065,15 +1065,18 @@ void Spell::DoSpellHitOnUnit(Unit *unit, uint32 effectMask, bool isReflected)
     Unit* realCaster = GetAffectiveCaster();
 
     // Recheck immune (only for delayed spells)
-    if (m_spellInfo->speed && (
-        unit->IsImmunedToDamage(GetSpellSchoolMask(m_spellInfo)) ||
-        unit->IsImmuneToSpell(m_spellInfo)))
-    {
-        if (realCaster)
-            realCaster->SendSpellMiss(unit, m_spellInfo->Id, SPELL_MISS_IMMUNE);
+    // One more check for Mass dispel & Dispel
+    if(!( m_spellInfo->SpellFamilyName == SPELLFAMILY_PRIEST && m_spellInfo->IsFitToFamilyMask(UI64LIT(0x8000000000)))){
+        if(m_spellInfo->speed &&
+           !(m_spellInfo->Attributes & SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY) &&
+           (unit->IsImmunedToDamage(GetSpellSchoolMask(m_spellInfo)) ||
+            unit->IsImmuneToSpell(m_spellInfo))){
+                if (realCaster)
+                    realCaster->SendSpellMiss(unit, m_spellInfo->Id, SPELL_MISS_IMMUNE);
 
-        ResetEffectDamageAndHeal();
-        return;
+                ResetEffectDamageAndHeal();
+                return;
+            }
     }
 
     if (realCaster && realCaster != unit)
@@ -1100,8 +1103,10 @@ void Spell::DoSpellHitOnUnit(Unit *unit, uint32 effectMask, bool isReflected)
             }
 
             // not break stealth by cast targeting
-            if (!(m_spellInfo->AttributesEx & SPELL_ATTR_EX_NOT_BREAK_STEALTH))
-                unit->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
+            if (!(m_spellInfo->AttributesEx & SPELL_ATTR_EX_NOT_BREAK_STEALTH)){
+				if(!( m_spellInfo->SpellFamilyName == SPELLFAMILY_PRIEST && m_spellInfo->IsFitToFamilyMask(UI64LIT(0x8000000000))))
+					unit->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
+			}
 
 			//Sap remove stealth
 			if ( m_spellInfo->SpellFamilyName == SPELLFAMILY_ROGUE && m_spellInfo->IsFitToFamilyMask(UI64LIT(0x0000000000000080)) )
@@ -1112,8 +1117,10 @@ void Spell::DoSpellHitOnUnit(Unit *unit, uint32 effectMask, bool isReflected)
                 m_caster->isVisibleForOrDetect(unit, unit, false))
             {
                 // use speedup check to avoid re-remove after above lines
-                if (!(m_spellInfo->AttributesEx & SPELL_ATTR_EX_NOT_BREAK_STEALTH))
-                    unit->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
+                if (!(m_spellInfo->AttributesEx & SPELL_ATTR_EX_NOT_BREAK_STEALTH)){
+					if(!( m_spellInfo->SpellFamilyName == SPELLFAMILY_PRIEST && m_spellInfo->IsFitToFamilyMask(UI64LIT(0x8000000000))))
+						unit->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
+				}
 
                 // caster can be detected but have stealth aura
                 m_caster->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
@@ -4173,6 +4180,7 @@ SpellCastResult Spell::CheckCast(bool strict)
             }
         }
 
+        //This prevented to cast heal on players in cyclone, which should be possible
         if(IsPositiveSpell(m_spellInfo->Id))
         {
             if(target->IsImmuneToSpell(m_spellInfo))

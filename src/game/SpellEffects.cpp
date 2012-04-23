@@ -3380,6 +3380,19 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
                 if (positive == unitTarget->IsFriendlyTo(m_caster))
                     continue;
             }
+
+            /*int32 Miss_Chance = 0;
+			SpellEntry const* spellInfo = holder->GetSpellProto();
+            // Dispel effects will no longer attempt to remove effects that have 100% dispel resistance.
+            if (Unit *caster = holder->GetCaster()){
+                if ( Player* modOwner = caster->GetSpellModOwner() ){
+                    int32 temp = modOwner->ApplySpellMod(spellInfo->Id, SPELLMOD_RESIST_DISPEL_CHANCE, Miss_Chance, this);
+
+                    // Check chance.
+                    if(temp <= 0 )
+                        continue;
+                }
+            }*/
             dispel_list.push_back(std::pair<SpellAuraHolder* ,uint32>(holder, holder->GetStackAmount()));
         }
     }
@@ -3418,6 +3431,7 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
                 if ( Player* modOwner = caster->GetSpellModOwner() )
                     modOwner->ApplySpellMod(spellInfo->Id, SPELLMOD_RESIST_DISPEL_CHANCE, miss_chance, this);
             }
+
             // Try dispel
             if (roll_chance_i(miss_chance))
                 fail_list.push_back(spellInfo->Id);

@@ -2809,17 +2809,29 @@ SpellMissInfo Unit::SpellHitResult(Unit *pVictim, SpellEntry const *spell, bool 
         return SPELL_MISS_EVADE;
 
     // Check for immune (use charges)
-    if (pVictim->IsImmuneToSpell(spell))
-        return SPELL_MISS_IMMUNE;
+    if(!(spell->SpellFamilyName == SPELLFAMILY_PRIEST && spell->IsFitToFamilyMask(UI64LIT(0x8000000000)))){
+        //if(!(spell->Attributes & SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY)){
+            if (pVictim->IsImmuneToSpell(spell)){
+                return SPELL_MISS_IMMUNE;
+            }
+        //}
+    }
 
     // All positive spells can`t miss
     // TODO: client not show miss log for this spells - so need find info for this in dbc and use it!
     if (IsPositiveSpell(spell->Id))
         return SPELL_MISS_NONE;
 
-    // Check for immune (use charges)
-    if (pVictim->IsImmunedToDamage(GetSpellSchoolMask(spell)))
-        return SPELL_MISS_IMMUNE;
+    // Check for immune (use charges) & aditional check for Mass Dispel. Mass Dispel
+	// does damage & in case it will be checked for immune to damage it return immune.
+	// Check for immune to damage is very horrible for Mass Dispel.
+    if(!(spell->SpellFamilyName == SPELLFAMILY_PRIEST && spell->IsFitToFamilyMask(UI64LIT(0x8000000000)))){
+        if(!(spell->Attributes & SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY)){
+            if(pVictim->IsImmunedToDamage(GetSpellSchoolMask(spell))){
+                return SPELL_MISS_IMMUNE;
+            }
+        }
+    }
 
     // Try victim reflect spell
     if (CanReflect)
