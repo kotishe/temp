@@ -1171,7 +1171,7 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
                     }
                     case CLASS_MAGE:
                     {
-                                                            //40% damage bonus of mage's frost damage
+                        // 40% damage bonus of mage's frost damage
                         float val = owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + SPELL_SCHOOL_FROST) * 0.4f;
                         if(val < 0)
                             val = 0;
@@ -1180,10 +1180,8 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
                     }
 					case CLASS_PRIEST:
                     {
-                                                            //65% damage bonus of priest's shadow damage
-						//TODO: Make in rigt way througth trigger system adding bonus damage prom player spell damade
-						// in dynamic way
-                        float val = owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + SPELL_SCHOOL_SHADOW) * 0.65f;
+                        // 40% damage bonus of priest's shadow damage
+                        float val = owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + SPELL_SCHOOL_SHADOW) * 0.4f;
                         if(val < 0)
                             val = 0;
                         SetBonusDamage( int32(val) );
@@ -1278,6 +1276,9 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
             SetUInt32Value(UNIT_FIELD_PETEXPERIENCE, 0);
             SetUInt32Value(UNIT_FIELD_PETNEXTLEVELEXP, 1000);
 
+            // Bonus damage getting from player
+            SetBonusDamage( int32(0) );
+			
 			if(owner->GetTypeId() == TYPEID_PLAYER)
 			{
 				switch(owner->getClass())
@@ -1287,32 +1288,40 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
 						PetLevelInfo const* pInfo = sObjectMgr.GetPetLevelInfo(creature_ID, petlevel);
 						if (!pInfo)
 							SetCreateHealth(30 + 30*petlevel);
+                        else{
+                            SetCreateHealth(30 + 30*petlevel);
+                        }
 						//15% damage bonus of druids's nature damage
 						float val = owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + SPELL_SCHOOL_NATURE) * 0.15f;
 						if(val < 0)
 							val = 0;
-						SetBonusDamage( int32(val) );
-						SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float(petlevel - (petlevel / 4) + GetBonusDamage()) );
-						SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float(petlevel + (petlevel / 4) + GetBonusDamage()) );
+                        SetBonusDamage( int32(val) );
+                        SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float( petlevel - (petlevel / 4) + GetBonusDamage() ));
+                        SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float( petlevel + (petlevel / 4) + GetBonusDamage() ));
 						break;
 					}
 					case CLASS_SHAMAN:
-					{
-						SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float(petlevel - (petlevel / 4)));
-						SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float(petlevel + (petlevel / 4)));
-						break;
+                    {
+                        //SetCreateMana(28 + 10*petlevel);
+                        SetCreateHealth(28 + 30*petlevel);
+
+                        SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float( petlevel - (petlevel / 4) + GetBonusDamage() ));
+                        SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float( petlevel + (petlevel / 4) + GetBonusDamage() ));
+                        break;
 					}
 				}
 			}
-            SetCreateMana(28 + 10*petlevel);
-            SetCreateHealth(28 + 30*petlevel);
+            else{
+                SetCreateMana(28 + 10*petlevel);
+                SetCreateHealth(28 + 30*petlevel);
 
-            // FIXME: this is wrong formula, possible each guardian pet have own damage formula
-            //these formula may not be correct; however, it is designed to be close to what it should be
-            //this makes dps 0.5 of pets level
-            SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float(petlevel - (petlevel / 4)));
-            //damage range is then petlevel / 2
-            SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float(petlevel + (petlevel / 4)));
+                // FIXME: this is wrong formula, possible each guardian pet have own damage formula
+                //these formula may not be correct; however, it is designed to be close to what it should be
+                //this makes dps 0.5 of pets level
+                SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float( petlevel - (petlevel / 4) + GetBonusDamage() ));
+                //damage range is then petlevel / 2
+                SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float( petlevel + (petlevel / 4) + GetBonusDamage() ));
+            }
             break;
 		}
         default:
