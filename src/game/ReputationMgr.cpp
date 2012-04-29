@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2012 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -142,6 +142,7 @@ void ReputationMgr::SendState(FactionState const* faction)
             {
                 data << (uint32) itr->second.ReputationListID;
                 data << (uint32) itr->second.Standing;
+
                 ++count;
             }
         }
@@ -418,11 +419,17 @@ void ReputationMgr::LoadFromDB(QueryResult *result)
                 }
 
                 // set atWar for hostile
-                if(GetRank(factionEntry) <= REP_HOSTILE)
-                    SetAtWar(faction,true);
+                ForcedReactions::const_iterator forceItr = m_forcedReactions.find(factionEntry->ID);
+                if (forceItr != m_forcedReactions.end())
+                {
+                    if (forceItr->second <= REP_HOSTILE)
+                        SetAtWar(faction, true);
+                }
+                else if (GetRank(factionEntry) <= REP_HOSTILE)
+                    SetAtWar(faction, true);
 
                 // reset changed flag if values similar to saved in DB
-                if(faction->Flags==dbFactionFlags)
+                if (faction->Flags == dbFactionFlags)
                 {
                     faction->needSend = false;
                     faction->needSave = false;

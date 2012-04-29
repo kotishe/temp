@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2012 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,11 +70,11 @@ enum BG_EY_ProgressBarConsts
 enum BG_EY_Sounds
 {
     //strange ids, but sure about them
-    BG_EY_SOUND_FLAG_PICKED_UP_ALLIANCE   = 8212,
-    BG_EY_SOUND_FLAG_CAPTURED_HORDE       = 8213,
-    BG_EY_SOUND_FLAG_PICKED_UP_HORDE      = 8174,
-    BG_EY_SOUND_FLAG_CAPTURED_ALLIANCE    = 8173,
-    BG_EY_SOUND_FLAG_RESET                = 8192
+    BG_EY_SOUND_FLAG_PICKED_UP_ALLIANCE = 8212,
+    BG_EY_SOUND_FLAG_CAPTURED_HORDE     = 8213,
+    BG_EY_SOUND_FLAG_PICKED_UP_HORDE    = 8174,
+    BG_EY_SOUND_FLAG_CAPTURED_ALLIANCE  = 8173,
+    BG_EY_SOUND_FLAG_RESET              = 8192
 };
 
 enum BG_EY_Spells

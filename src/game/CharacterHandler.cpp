@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2012 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -565,7 +565,7 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder *holder)
         Guild* guild = sGuildMgr.GetGuildById(pCurrChar->GetGuildId());
         if(guild)
         {
-            data.Initialize(SMSG_GUILD_EVENT, (2+guild->GetMOTD().size()+1));
+            data.Initialize(SMSG_GUILD_EVENT, (1+1+guild->GetMOTD().size()+1));
             data << uint8(GE_MOTD);
             data << uint8(1);
             data << guild->GetMOTD();
@@ -742,14 +742,14 @@ void WorldSession::HandleTutorialFlagOpcode( WorldPacket & recv_data )
 
 void WorldSession::HandleTutorialClearOpcode( WorldPacket & /*recv_data*/ )
 {
-    for ( uint32 iI = 0; iI < 8; ++iI)
-        SetTutorialInt( iI, 0xFFFFFFFF );
+    for (int i = 0; i < 8; ++i)
+        SetTutorialInt( i, 0xFFFFFFFF );
 }
 
 void WorldSession::HandleTutorialResetOpcode( WorldPacket & /*recv_data*/ )
 {
-    for ( uint32 iI = 0; iI < 8; iI++)
-        SetTutorialInt( iI, 0x00000000 );
+    for (int i = 0; i < 8; ++i)
+        SetTutorialInt( i, 0x00000000 );
 }
 
 void WorldSession::HandleSetWatchedFactionOpcode(WorldPacket & recv_data)

@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
+* Copyright (C) 2005-2012 MaNGOS <http://getmangos.com/>
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -119,13 +119,13 @@ enum AbilitySkillFlags
 
 enum ItemEnchantmentType
 {
-    ITEM_ENCHANTMENT_TYPE_NONE         = 0,
-    ITEM_ENCHANTMENT_TYPE_COMBAT_SPELL = 1,
-    ITEM_ENCHANTMENT_TYPE_DAMAGE       = 2,
-    ITEM_ENCHANTMENT_TYPE_EQUIP_SPELL  = 3,
-    ITEM_ENCHANTMENT_TYPE_RESISTANCE   = 4,
-    ITEM_ENCHANTMENT_TYPE_STAT         = 5,
-    ITEM_ENCHANTMENT_TYPE_TOTEM        = 6
+    ITEM_ENCHANTMENT_TYPE_NONE             = 0,
+    ITEM_ENCHANTMENT_TYPE_COMBAT_SPELL     = 1,
+    ITEM_ENCHANTMENT_TYPE_DAMAGE           = 2,
+    ITEM_ENCHANTMENT_TYPE_EQUIP_SPELL      = 3,
+    ITEM_ENCHANTMENT_TYPE_RESISTANCE       = 4,
+    ITEM_ENCHANTMENT_TYPE_STAT             = 5,
+    ITEM_ENCHANTMENT_TYPE_TOTEM            = 6
 };
 
 enum TotemCategoryType

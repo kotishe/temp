@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2012 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,8 +39,8 @@ void WorldSession::SendNameQueryOpcode(Player *p)
         return;
                                                             // guess size
     WorldPacket data( SMSG_NAME_QUERY_RESPONSE, (8+1+4+4+4+10) );
-    data << ObjectGuid(p->GetObjectGuid());
-    data << p->GetName();
+    data << p->GetObjectGuid();                             // player guid
+    data << p->GetName();                                   // played name
     data << uint8(0);                                       // realm name for cross realm BG usage
     data << uint32(p->getRace());
     data << uint32(p->getGender());
@@ -377,10 +377,10 @@ void WorldSession::HandleNpcTextQueryOpcode( WorldPacket & recv_data )
 
 void WorldSession::HandlePageTextQueryOpcode( WorldPacket & recv_data )
 {
-    uint32 pageID;
+    DETAIL_LOG("WORLD: Received CMSG_PAGE_TEXT_QUERY");
 
+    uint32 pageID;
     recv_data >> pageID;
-    DETAIL_LOG("WORLD: Received CMSG_PAGE_TEXT_QUERY for pageID '%u'", pageID);
 
     while (pageID)
     {
@@ -427,4 +427,3 @@ void WorldSession::SendQueryTimeResponse()
     data << uint32(sWorld.GetNextDailyQuestsResetTime() - time(NULL));
     SendPacket(&data);
 }
-

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2012 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -140,6 +140,7 @@ Quest::Quest(Field * questRecord)
     {
         if ( ReqItemId[i] )
             ++m_reqitemscount;
+
         if ( ReqCreatureOrGOId[i] )
             ++m_reqCreatureOrGOcount;
     }
@@ -157,9 +158,9 @@ Quest::Quest(Field * questRecord)
     }
 }
 
-uint32 Quest::XPValue( Player *pPlayer ) const
+uint32 Quest::XPValue(Player *pPlayer) const
 {
-    if( pPlayer )
+    if (pPlayer)
     {
         if( RewMoneyMaxLevel > 0 )
         {
@@ -193,6 +194,7 @@ uint32 Quest::XPValue( Player *pPlayer ) const
                 return uint32(ceilf(fullxp * 0.1f));
         }
     }
+
     return 0;
 }
 

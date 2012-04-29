@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2012 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -79,11 +79,13 @@ void WorldSession::HandleGroupInviteOpcode( WorldPacket & recv_data )
         SendPartyResult(PARTY_OP_INVITE, membername, ERR_PLAYER_WRONG_FACTION);
         return;
     }
+
     if(GetPlayer()->GetInstanceId() != 0 && player->GetInstanceId() != 0 && GetPlayer()->GetInstanceId() != player->GetInstanceId() && GetPlayer()->GetMapId() == player->GetMapId())
     {
         SendPartyResult(PARTY_OP_INVITE, membername, ERR_TARGET_NOT_IN_INSTANCE_S);
         return;
     }
+
     // just ignore us
     if(player->GetSocial()->HasIgnore(GetPlayer()->GetObjectGuid()))
     {
@@ -639,15 +641,10 @@ void WorldSession::BuildPartyMemberStatsChangedPacket(Player *player, WorldPacke
 
     if (mask & GROUP_UPDATE_FLAG_STATUS)
     {
-        if (player)
-        {
-            if (player->IsPvP())
-                *data << uint16(MEMBER_STATUS_ONLINE | MEMBER_STATUS_PVP);
-            else
-                *data << uint16(MEMBER_STATUS_ONLINE);
-        }
+        if (player->IsPvP())
+            *data << uint16(MEMBER_STATUS_ONLINE | MEMBER_STATUS_PVP);
         else
-            *data << uint16(MEMBER_STATUS_OFFLINE);
+            *data << uint16(MEMBER_STATUS_ONLINE);
     }
 
     if (mask & GROUP_UPDATE_FLAG_CUR_HP)
@@ -776,8 +773,8 @@ void WorldSession::HandleRequestPartyMemberStatsOpcode( WorldPacket &recv_data )
     ObjectGuid guid;
     recv_data >> guid;
 
-    Player * player = HashMapHolder<Player>::Find(guid);
-    if(!player)
+    Player* player = ObjectAccessor::FindPlayer(guid, false);
+    if (!player)
     {
         WorldPacket data(SMSG_PARTY_MEMBER_STATS_FULL, 3+4+2);
         data << guid.WriteAsPacked();

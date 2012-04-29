@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2012 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,6 +62,7 @@ enum CreatureLinkingFlags
     FLAG_TO_AGGRO_ON_AGGRO          = 0x0002,
     FLAG_RESPAWN_ON_EVADE           = 0x0004,
     FLAG_TO_RESPAWN_ON_EVADE        = 0x0008,
+    FLAG_DESPAWN_ON_EVADE           = 0x1000,
     FLAG_DESPAWN_ON_DEATH           = 0x0010,
     FLAG_SELFKILL_ON_DEATH          = 0x0020,
     FLAG_RESPAWN_ON_DEATH           = 0x0040,
@@ -75,7 +76,7 @@ enum CreatureLinkingFlags
     FLAG_CANT_SPAWN_IF_BOSS_DEAD    = 0x0400,
     FLAG_CANT_SPAWN_IF_BOSS_ALIVE   = 0x0800,
 
-    LINKING_FLAG_INVALID            = 0x1000,               // TODO adjust when other flags are implemented
+    LINKING_FLAG_INVALID            = 0x2000,               // TODO adjust when other flags are implemented
 };
 
 // Structure holding the information for an entry
@@ -83,8 +84,9 @@ struct CreatureLinkingInfo
 {
     uint32 mapId;
     uint32 masterId;
-    uint16 linkingFlag;
     uint32 masterDBGuid;
+    uint16 linkingFlag;
+    uint16 searchRange;
 };
 
 /**
@@ -117,7 +119,7 @@ class CreatureLinkingMgr
         typedef std::multimap<uint32 /*slaveEntry*/, CreatureLinkingInfo> CreatureLinkingMap;
         typedef std::pair<CreatureLinkingMap::const_iterator, CreatureLinkingMap::const_iterator> CreatureLinkingMapBounds;
 
-        // Storage of Data: npc_entry_slave, (map, npc_entry_master, flag, master_db_guid[If Unique])
+        // Storage of Data: npc_entry_slave, (map, npc_entry_master, flag, master_db_guid[If Unique], search_range)
         CreatureLinkingMap m_creatureLinkingMap;
 
         // Lookup Storage for fast access:
@@ -157,22 +159,26 @@ class CreatureLinkingHolder
     private:
         typedef std::list<ObjectGuid> GuidList;
         // Structure associated to a master
-        struct FlagAndGuids
+        struct InfoAndGuids
         {
             uint16 linkingFlag;
+            uint16 searchRange;
             GuidList linkedGuids;
         };
 
-        typedef std::multimap<uint32 /*masterEntry*/, FlagAndGuids> HolderMap;
+        typedef std::multimap<uint32 /*masterEntry*/, InfoAndGuids> HolderMap;
         typedef std::pair<HolderMap::iterator, HolderMap::iterator> HolderMapBounds;
-        typedef UNORDERED_MAP<uint32 /*Entry*/, ObjectGuid> BossGuidMap;
+        typedef std::multimap<uint32 /*Entry*/, ObjectGuid> BossGuidMap;
+        typedef std::pair<BossGuidMap::iterator, BossGuidMap::iterator> BossGuidMapBounds;
 
         // Helper function, to process a slave list
-        void ProcessSlaveGuidList(CreatureLinkingEvent eventType, Creature* pSource, uint32 flag, GuidList& slaveGuidList, Unit* pEnemy);
+        void ProcessSlaveGuidList(CreatureLinkingEvent eventType, Creature* pSource, uint32 flag, uint16 searchRange, GuidList& slaveGuidList, Unit* pEnemy);
         // Helper function, to process a single slave
         void ProcessSlave(CreatureLinkingEvent eventType, Creature* pSource, uint32 flag, Creature* pSlave, Unit* pEnemy);
         // Helper function to set following
         void SetFollowing(Creature* pWho, Creature* pWhom);
+        // Helper function to return if a slave is in range of a boss
+        bool IsSlaveInRangeOfBoss(Creature* pSlave, Creature* pBoss, uint16 searchRange);
 
         // Storage of Data (boss, flag) GuidList for action triggering
         HolderMap m_holderMap;
