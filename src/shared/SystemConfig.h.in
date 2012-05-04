@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2005-2012 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,7 +20,7 @@
 #define MANGOS_SYSTEMCONFIG_H
 
 #ifndef _PACKAGENAME
-#define _PACKAGENAME "Atlantis core rev. 00027 based on MaNGOS One"
+#define _PACKAGENAME "Atlantis core rev. 00029 based on MaNGOS One"
 #endif
 
 #include "Platform/Define.h"
