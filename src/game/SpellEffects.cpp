@@ -6451,6 +6451,7 @@ void Spell::EffectStealBeneficialBuff(SpellEffectIndex eff_idx)
         typedef std::list < std::pair<uint32, ObjectGuid> > SuccessList;
         SuccessList success_list;
         std::list < uint32 > fail_list;                     // spell_id
+        int32 list_size = steal_list.size();
 
         // Random select buff for steal
         SpellAuraHolder *holder = steal_list[urand(0, list_size-1)];

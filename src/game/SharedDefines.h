@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2005-2012 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -2250,7 +2250,8 @@ enum PetDiet
 
 #define MAX_PET_DIET 9
 
-#define CHAIN_SPELL_JUMP_RADIUS 10
+#define CHAIN_SPELL_JUMP_RADIUS 20
+#define CHAIN_HEAL_JUMP_RADIUS 40
 
 // Max values for Guild & Guild Bank
 #define GUILD_BANK_MAX_TABS         6                       // send by client for money log also
