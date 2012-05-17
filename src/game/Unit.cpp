@@ -4024,12 +4024,9 @@ void Unit::RemoveAuraHolderDueToSpellByDispel(uint32 spellId, uint32 stackAmount
     {
         if (Aura* dotAura = GetAura(SPELL_AURA_DUMMY, SPELLFAMILY_DRUID, UI64LIT(0x0000001000000000), casterGuid))
         {
-            if (dotAura->GetStackAmount() <= stackAmount)
-            {
-                // Lifebloom dummy store single stack amount always
-                int32 amount = dotAura->GetModifier()->m_amount;
-                CastCustomSpell(this, 33778, &amount, NULL, NULL, true, NULL, dotAura, casterGuid);
-            }
+            // Lifebloom dummy store single stack amount always
+            int32 amount = dotAura->GetModifier()->m_amount;
+            CastCustomSpell(this, 33778, &amount, NULL, NULL, true, NULL, dotAura, casterGuid);
         }
     }
 
