@@ -5065,7 +5065,10 @@ SpellCastResult Spell::CheckPetCast(Unit* target)
     if(!m_caster->isAlive())
         return SPELL_FAILED_CASTER_DEAD;
 
-    if(m_caster->IsNonMeleeSpellCasted(false))              //prevent spellcast interruption by another spellcast
+    //prevent spellcast interruption by another spellcast
+    if( m_caster->IsNonMeleeSpellCasted(false)
+       // Water Elemental spell Freeze can be casted while another cast in progress.
+       && !(m_spellInfo->Id == 33395) )
         return SPELL_FAILED_SPELL_IN_PROGRESS;
     if(m_caster->isInCombat() && IsNonCombatSpell(m_spellInfo))
         return SPELL_FAILED_AFFECTING_COMBAT;
