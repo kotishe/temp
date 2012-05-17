@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2005-2012 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -103,9 +103,6 @@ void WorldSession::HandlePetAction(WorldPacket& recv_data)
 
                     // not let attack friendly units.
                     if (GetPlayer()->IsFriendlyTo(TargetUnit))
-                        return;
-                    // Not let attack through obstructions
-                    if (!pet->IsWithinLOSInMap(TargetUnit))
                         return;
 
                     // This is true if pet has no target or has target but targets differs.
