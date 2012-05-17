@@ -6165,6 +6165,9 @@ uint32 Unit::SpellHealingBonusTaken(Unit *pCaster, SpellEntry const *spellProto,
 {
     float  TakenTotalMod = 1.0f;
 
+    // Reduce healing taken percent
+    float heal_reduce_value = float(GetMaxNegativeAuraModifier(SPELL_AURA_MOD_HEALING_PCT));
+
     // Heal resived can't be less than 50% in case of player negative auras.
     bool Aura_found = false; // Non player auras.
     // Search non player auras that reduce healing more than 50%.
