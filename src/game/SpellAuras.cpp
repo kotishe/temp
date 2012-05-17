@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2005-2012 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -493,7 +493,10 @@ void Aura::Update(uint32 diff)
             // update before applying (aura can be removed in TriggerSpell or PeriodicTick calls)
             m_periodicTimer += m_modifier.periodictime;
             ++m_periodicTick;                               // for some infinity auras in some cases can overflow and reset
-            PeriodicTick();
+
+            // For hots in cyclone.
+            if ( !target->hasUnitState(UNIT_STAT_ISOLATED) )
+                PeriodicTick();
         }
     }
 }
