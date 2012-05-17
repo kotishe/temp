@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2005-2012 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -6165,14 +6165,39 @@ uint32 Unit::SpellHealingBonusTaken(Unit *pCaster, SpellEntry const *spellProto,
 {
     float  TakenTotalMod = 1.0f;
 
-    // Healing taken percent
-    float minval = float(GetMaxNegativeAuraModifier(SPELL_AURA_MOD_HEALING_PCT));
-    if (minval)
-        TakenTotalMod *= (100.0f + minval) / 100.0f;
+    // Heal resived can't be less than 50% in case of player negative auras.
+    bool Aura_found = false; // Non player auras.
+    // Search non player auras that reduce healing more than 50%.
+    AuraList const& Healingreduce = GetAurasByType(SPELL_AURA_MOD_HEALING_PCT);
+    for (AuraList::const_iterator i = Healingreduce.begin(); i != Healingreduce.end(); ++i)
+    {
+        switch ((*i)->GetSpellProto()->Id)
+        {
+            case 30641: // Mortal Wound Normal
+            case 31306: // Carrion Swarm
+            case 36814: // Mortal Wound Heroic
+            case 41292: // Aura of Suffering
+            case 42017: // Aura of Suffering
+                Aura_found = true;
+            break;
 
-    float maxval = float(GetMaxPositiveAuraModifier(SPELL_AURA_MOD_HEALING_PCT));
-    if (maxval)
-        TakenTotalMod *= (100.0f + maxval) / 100.0f;
+        }
+    }
+    // Case target have debufs from creatures that reduce healing more than 50%.
+    if( heal_reduce_value && Aura_found ){
+        TakenTotalMod *= (100.0f + heal_reduce_value) / 100.0f;
+    }
+    // Case target have only player debufs that reduce healing.
+    else if( heal_reduce_value && !Aura_found ){
+        if( heal_reduce_value < -50.0f )
+            heal_reduce_value = -50.0f;
+        TakenTotalMod *= (100.0f + heal_reduce_value) / 100.0f;
+    }
+
+    // Increase healing taken percent
+    float heal_increase_value = float(GetMaxPositiveAuraModifier(SPELL_AURA_MOD_HEALING_PCT));
+    if (heal_increase_value)
+        TakenTotalMod *= (100.0f + heal_increase_value) / 100.0f;
 
     // No heal amount for this class spells
     if (spellProto->DmgClass == SPELL_DAMAGE_CLASS_NONE)
