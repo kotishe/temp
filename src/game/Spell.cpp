@@ -2846,6 +2846,8 @@ void Spell::cast(bool skipCheck)
                 case 27800: AddTriggeredSpell(27804); break;// Holy Nova, rank 5
                 case 27801: AddTriggeredSpell(27805); break;// Holy Nova, rank 6
                 case 25331: AddTriggeredSpell(25329); break;// Holy Nova, rank 7
+                // Temporary for priests.
+                case 33206: AddTriggeredSpell(44416); break;// Pain Suppression
                 default:break;
             }
             break;
