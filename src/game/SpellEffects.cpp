@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2005-2012 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -6423,6 +6423,13 @@ void Spell::EffectStealBeneficialBuff(SpellEffectIndex eff_idx)
     if(!unitTarget || unitTarget==m_caster)                 // can't steal from self
         return;
 
+    //Cause caster & hostile target to enter combat on spellsteal.
+    if (unitTarget->IsHostileTo(m_caster))
+    {
+        m_caster->SetInCombatWith(unitTarget);
+        unitTarget->SetInCombatWith(m_caster);
+    }
+
     typedef std::vector<SpellAuraHolder*> StealList;
     StealList steal_list;
     // Create dispel mask by dispel type
@@ -6438,34 +6445,43 @@ void Spell::EffectStealBeneficialBuff(SpellEffectIndex eff_idx)
                 steal_list.push_back(holder);
         }
     }
-    // Ok if exist some buffs for dispel try dispel it
+    // Ok if exist some buffs for steal try to steal it
     if (!steal_list.empty())
     {
         typedef std::list < std::pair<uint32, ObjectGuid> > SuccessList;
         SuccessList success_list;
-        int32 list_size = steal_list.size();
-        // Dispell N = damage buffs (or while exist buffs for dispel)
-        for (int32 count=0; count < damage && list_size > 0; ++count)
+        std::list < uint32 > fail_list;                     // spell_id
+
+        // Random select buff for steal
+        SpellAuraHolder *holder = steal_list[urand(0, list_size-1)];
+        SpellEntry const* spellInfo = holder->GetSpellProto();
+        // Base dispel chance
+        int32 miss_chance = 0;
+        // Apply dispel mod from aura caster
+        if (Unit *caster = holder->GetCaster())
         {
-            // Random select buff for dispel
-            SpellAuraHolder *holder = steal_list[urand(0, list_size-1)];
-            // Not use chance for steal
-            // TODO possible need do it
+            if ( Player* modOwner = caster->GetSpellModOwner() )
+                modOwner->ApplySpellMod(spellInfo->Id, SPELLMOD_RESIST_DISPEL_CHANCE, miss_chance, this);
+        }
+        // Try to steal
+        if (roll_chance_i(miss_chance))
+            fail_list.push_back(spellInfo->Id);
+        else
             success_list.push_back(SuccessList::value_type(holder->GetId(),holder->GetCasterGuid()));
 
-            // Remove buff from list for prevent doubles
-            for (StealList::iterator j = steal_list.begin(); j != steal_list.end(); )
+        // Remove buff from list for prevent doubles
+        for (StealList::iterator j = steal_list.begin(); j != steal_list.end(); )
+        {
+            SpellAuraHolder *stealed = *j;
+            if (stealed->GetId() == holder->GetId() && stealed->GetCasterGuid() == holder->GetCasterGuid())
             {
-                SpellAuraHolder *stealed = *j;
-                if (stealed->GetId() == holder->GetId() && stealed->GetCasterGuid() == holder->GetCasterGuid())
-                {
-                    j = steal_list.erase(j);
-                    --list_size;
-                }
-                else
-                    ++j;
+                j = steal_list.erase(j);
+                --list_size;
             }
+            else
+                ++j;
         }
+
         // Really try steal and send log
         if (!success_list.empty())
         {
@@ -6473,7 +6489,7 @@ void Spell::EffectStealBeneficialBuff(SpellEffectIndex eff_idx)
             WorldPacket data(SMSG_SPELLSTEALLOG, 8+8+4+1+4+count*5);
             data << unitTarget->GetPackGUID();       // Victim GUID
             data << m_caster->GetPackGUID();         // Caster GUID
-            data << uint32(m_spellInfo->Id);         // Dispell spell id
+            data << uint32(m_spellInfo->Id);         // Steal spell id
             data << uint8(0);                        // not used
             data << uint32(count);                   // count
             for (SuccessList::iterator j = success_list.begin(); j != success_list.end(); ++j)
@@ -6483,6 +6499,17 @@ void Spell::EffectStealBeneficialBuff(SpellEffectIndex eff_idx)
                 data << uint8(0);                    // 0 - steals !=0 transfers
                 unitTarget->RemoveAurasDueToSpellBySteal(spellInfo->Id, j->second, m_caster);
             }
+            m_caster->SendMessageToSet(&data, true);
+        }
+        if (!fail_list.empty())
+        {
+            // Failed to steal
+            WorldPacket data(SMSG_DISPEL_FAILED, 8+8+4+4*fail_list.size());
+            data << m_caster->GetObjectGuid();              // Caster GUID
+            data << unitTarget->GetObjectGuid();            // Victim GUID
+            data << uint32(m_spellInfo->Id);                // Steal spell id
+            for (std::list< uint32 >::iterator j = fail_list.begin(); j != fail_list.end(); ++j)
+                data << uint32(*j);                         // Spell Id
             m_caster->SendMessageToSet(&data, true);
         }
     }

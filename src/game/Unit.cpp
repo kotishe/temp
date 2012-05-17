@@ -4067,9 +4067,18 @@ void Unit::RemoveAurasDueToSpellBySteal(uint32 spellId, ObjectGuid casterGuid, U
         new_holder->AddAura(new_aur, new_aur->GetEffIndex());
     }
 
-    if (holder->ModStackAmount(-1))
-        // Remove aura as dispel
-        RemoveSpellAuraHolder(holder, AURA_REMOVE_BY_DISPEL);
+    // Steal Lifebloom
+    if (spellProto->SpellFamilyName == SPELLFAMILY_DRUID && (spellProto->SpellFamilyFlags & UI64LIT(0x0000001000000000)))
+        {
+            if (Aura* dotAura = GetAura(SPELL_AURA_DUMMY, SPELLFAMILY_DRUID, UI64LIT(0x0000001000000000), casterGuid))
+            {
+                // Lifebloom dummy store single stack amount always
+                int32 amount = dotAura->GetModifier()->m_amount;
+                CastCustomSpell(this, 33778, &amount, NULL, NULL, true, NULL, dotAura, casterGuid);
+            }
+    }
+    // Remove aura as dispel
+    RemoveAuraHolderFromStack(spellId, 1, casterGuid, AURA_REMOVE_BY_DISPEL);
 
     // strange but intended behaviour: Stolen single target auras won't be treated as single targeted
     new_holder->SetIsSingleTarget(false);
