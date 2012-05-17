@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2005-2012 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -4224,7 +4224,12 @@ SpellCastResult Spell::CheckCast(bool strict)
                         target_hostile = m_caster->IsHostileTo(target);
                     }
 
-                    if(target_hostile)
+                    // TARGET_DUELVSPLAYER is positive AND negative
+                    // Check for Devour Magic. Without it can't dispel from hostile target.
+                    bool duelvsplayertar = false;
+                    duelvsplayertar |= (m_spellInfo->EffectImplicitTargetA[0] == TARGET_DUELVSPLAYER);
+
+                    if( target_hostile && !duelvsplayertar )
                         return SPELL_FAILED_BAD_TARGETS;
                 }
                 else
@@ -5102,7 +5107,9 @@ SpellCastResult Spell::CheckPetCast(Unit* target)
 
             if(IsPositiveSpell(m_spellInfo->Id))
             {
-                if(m_caster->IsHostileTo(_target))
+                // Check for Devour Magic. Without it can't dispel from hostile target.
+                if( m_caster->IsHostileTo(_target)
+                    && !(m_spellInfo->EffectImplicitTargetA[0] == TARGET_DUELVSPLAYER) )
                     return SPELL_FAILED_BAD_TARGETS;
             }
             else
