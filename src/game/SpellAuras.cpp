@@ -485,6 +485,8 @@ void Aura::SetModifier(AuraType t, int32 a, uint32 pt, int32 miscValue)
 
 void Aura::Update(uint32 diff)
 {
+    Unit *target = GetTarget();
+
     if (m_isPeriodic)
     {
         m_periodicTimer -= diff;
