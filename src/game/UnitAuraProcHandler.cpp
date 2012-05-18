@@ -2157,6 +2157,15 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit *pVictim, uint32 d
             basepoints[0] = int32(GetTotalAttackPowerValue(BASE_ATTACK) * triggerAmount / 100);
             break;
         }
+        // Hunter: Expose Weakness
+        case 34501:
+        {
+            basepoints[0] = int32(GetStat(STAT_AGILITY) *0.25);
+            basepoints[1] = int32(GetStat(STAT_AGILITY) *0.25);
+
+            CastCustomSpell(pVictim,trigger_spell_id,&basepoints[0],&basepoints[1],NULL,true,castItem,triggeredByAura);
+            return SPELL_AURA_PROC_OK;
+        }
         // Enlightenment (trigger only from mana cost spells)
         case 35095:
         {
