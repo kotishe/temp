@@ -1581,13 +1581,51 @@ void Aura::TriggerSpell()
                 break;
             }
 
-//            case SPELLFAMILY_HUNTER:
-//            {
-//                switch(auraId)
-//                {
-//                    //Frost Trap Aura
-//                    case 13810:
-//                        return;
+            case SPELLFAMILY_HUNTER:
+            {
+                switch(auraId)
+                {
+                    // Frost Trap Aura
+                    case 13810:
+                    // Explosive Trap Effect
+                    case 13812: // Rank 1
+                    case 14314: // Rank 2
+                    case 14315: // Rank 3
+                    case 27026: // Rank 4
+                    // Immolation Trap Effect
+                    case 13797: // Rank 1
+                    case 14298: // Rank 2
+                    case 14299: // Rank 3
+                    case 14300: // Rank 4
+                    case 14301: // Rank 5
+                    case 27024: // Rank 6
+                    {
+                        Unit* caster = GetCaster();
+                        if( caster->GetTypeId()== TYPEID_PLAYER ){
+
+                            // Chance to entrap the target
+                            float EntraptChance = 0;
+                            // Look for coefficient EntraptChance
+                            Unit::AuraList const& AuraTriggerSpell = caster->GetAurasByType(SPELL_AURA_PROC_TRIGGER_SPELL);
+                            for(Unit::AuraList::const_iterator i = AuraTriggerSpell.begin(); i != AuraTriggerSpell.end(); ++i)
+                            {
+                                switch( (*i)->GetSpellProto()->Id ){
+                                    case 19384:
+                                    case 19387:
+                                    case 19388:
+                                        if( EntraptChance < (*i)->GetSpellProto()->procChance )
+                                            EntraptChance = (*i)->GetSpellProto()->procChance;
+                                }
+
+                            }
+                            // If chance -> entrap target.
+                            if( roll_chance_f(EntraptChance) ){
+                                trigger_spell_id = 19185;
+                            }
+                            else
+                                return;
+                        }
+                    }
 //                    //Rizzle's Frost Trap
 //                    case 39900:
 //                        return;
@@ -1611,11 +1649,12 @@ void Aura::TriggerSpell()
 //                    case 30648:         // Tame Greater Timberstrider
 //                    case 30652:         // Tame Nightstalker
 //                        return;
-//                    default:
-//                        break;
-//                }
-//                break;
-//            }
+                    default:
+                        break;
+                }
+                break;
+            }
+
             case SPELLFAMILY_SHAMAN:
             {
                 switch(auraId)
