@@ -15796,6 +15796,23 @@ LOCK TABLES `transports` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `warden_data_result`
+--
+
+DROP TABLE IF EXISTS `warden_data_result`;
+CREATE TABLE `warden_data_result` (
+  `id` int(4) NOT NULL auto_increment,
+  `check` int(3) default NULL,
+  `data` tinytext,
+  `str` tinytext,
+  `address` int(8) default NULL,
+  `length` int(2) default NULL,
+  `result` tinytext,
+  `comment` text,
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+--
 -- Table structure for table `world_template`
 --
 
