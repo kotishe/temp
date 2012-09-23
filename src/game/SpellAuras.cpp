@@ -3570,6 +3570,26 @@ void Aura::HandleFeignDeath(bool apply, bool Real)
     if (!Real)
         return;
 
+    // Interrupt cast if FD.
+    Unit *target = GetTarget();
+    Unit *caster = GetCaster();
+    // there is also a spell wich has TARGET_RANDOM_ENEMY_CHAIN_IN_AREA but it's unused. So not really necessary.
+    std::list<Unit*> targets;
+    MaNGOS::AnyUnfriendlyUnitInObjectRangeCheck u_check(target, target, caster->GetMap()->GetVisibilityDistance());
+    MaNGOS::UnitListSearcher<MaNGOS::AnyUnfriendlyUnitInObjectRangeCheck> searcher(targets, u_check);
+    Cell::VisitAllObjects(target, searcher, caster->GetMap()->GetVisibilityDistance());
+    for (std::list<Unit*>::iterator iter = targets.begin(); iter != targets.end(); ++iter){
+
+        if (!(*iter)->IsNonMeleeSpellCasted(false))
+            continue;
+
+        for (uint32 i = CURRENT_FIRST_NON_MELEE_SPELL; i < CURRENT_MAX_SPELL; i++){
+            if( (*iter)->GetCurrentSpell(CurrentSpellTypes(i)) &&
+                (*iter)->GetCurrentSpell(CurrentSpellTypes(i))->m_targets.getUnitTargetGuid() == target->GetGUIDLow() )
+                (*iter)->InterruptSpell(CurrentSpellTypes(CurrentSpellTypes(i)), false);
+        }
+    }
+
     GetTarget()->SetFeignDeath(apply, GetCasterGuid(), GetId());
 }
 
@@ -3726,9 +3746,28 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
 void Aura::HandleModStealth(bool apply, bool Real)
 {
     Unit* target = GetTarget();
+    Unit *caster = GetCaster();
 
     if (apply)
     {
+
+        // Interrupt cast if Stealth.
+        std::list<Unit*> targets;
+        MaNGOS::AnyUnfriendlyUnitInObjectRangeCheck u_check(target, target, caster->GetMap()->GetVisibilityDistance());
+        MaNGOS::UnitListSearcher<MaNGOS::AnyUnfriendlyUnitInObjectRangeCheck> searcher(targets, u_check);
+        Cell::VisitAllObjects(target, searcher, caster->GetMap()->GetVisibilityDistance());
+        for (std::list<Unit*>::iterator iter = targets.begin(); iter != targets.end(); ++iter){
+
+            if (!(*iter)->IsNonMeleeSpellCasted(false))
+                continue;
+
+            for (uint32 i = CURRENT_FIRST_NON_MELEE_SPELL; i < CURRENT_MAX_SPELL; i++){
+                if( (*iter)->GetCurrentSpell(CurrentSpellTypes(i)) &&
+                    (*iter)->GetCurrentSpell(CurrentSpellTypes(i))->m_targets.getUnitTargetGuid() == target->GetGUIDLow() )
+                    (*iter)->InterruptSpell(CurrentSpellTypes(CurrentSpellTypes(i)), false);
+            }
+        }
+
         // drop flag at stealth in bg
         target->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_IMMUNE_OR_LOST_SELECTION);
 
