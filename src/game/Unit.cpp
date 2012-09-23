@@ -5896,6 +5896,14 @@ uint32 Unit::SpellDamageBonusDone(Unit* pVictim, SpellEntry const* spellProto, u
     DoneTotal = SpellBonusWithCoeffs(spellProto, DoneTotal, DoneAdvertisedBenefit, 0, damagetype, true);
 
     float tmpDamage = (int32(pdamage) + DoneTotal * int32(stack)) * DoneTotalMod;
+
+    // Apply spellmod to damage done for creatures from rangedattackpower.
+    // There is no orher way to add more dmage for mobs spells. Other way add new column to creature_template -> spd.
+    if( GetTypeId() == TYPEID_UNIT && !((Creature*)this)->IsPet() ){
+        int creature_spd_bonus_done = ((Creature*)this)->GetCreatureInfo()->rangedattackpower * 0.4;
+        tmpDamage += creature_spd_bonus_done * DoneTotalMod;
+    }
+
     // apply spellmod to Done damage (flat and pct)
     if (Player* modOwner = GetSpellModOwner())
         modOwner->ApplySpellMod(spellProto->Id, damagetype == DOT ? SPELLMOD_DOT : SPELLMOD_DAMAGE, tmpDamage);
