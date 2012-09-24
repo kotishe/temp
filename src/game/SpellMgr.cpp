@@ -681,6 +681,7 @@ bool IsExplicitNegativeTarget(uint32 targetA)
 
 bool IsPositiveEffect(SpellEntry const* spellproto, SpellEffectIndex effIndex)
 {
+
     switch (spellproto->Effect[effIndex])
     {
         case SPELL_EFFECT_DUMMY:
@@ -878,6 +879,11 @@ bool IsPositiveEffect(SpellEntry const* spellproto, SpellEffectIndex effIndex)
         }
         default:
             break;
+    }
+
+    // Shdow sight must be negative, to prevent remove from rogues/druids.
+    if( spellproto->Id == 34709 ){
+        return false;
     }
 
     // non-positive targets

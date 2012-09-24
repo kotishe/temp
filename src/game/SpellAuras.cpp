@@ -279,7 +279,7 @@ pAuraHandler AuraHandler[TOTAL_AURAS] =
     &Aura::HandleNoImmediateEffect,                         //225 SPELL_AURA_PRAYER_OF_MENDING
     &Aura::HandleAuraPeriodicDummy,                         //226 SPELL_AURA_PERIODIC_DUMMY
     &Aura::HandlePeriodicTriggerSpellWithValue,             //227 SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE
-    &Aura::HandleNoImmediateEffect,                         //228 SPELL_AURA_DETECT_STEALTH
+    &Aura::HandleShadowSight,                               //228 SPELL_AURA_DETECT_STEALTH
     &Aura::HandleNoImmediateEffect,                         //229 SPELL_AURA_MOD_AOE_DAMAGE_AVOIDANCE        implemented in Unit::SpellDamageBonusTaken
     &Aura::HandleAuraModIncreaseMaxHealth,                  //230 Commanding Shout
     &Aura::HandleNoImmediateEffect,                         //231 SPELL_AURA_PROC_TRIGGER_SPELL_WITH_VALUE
@@ -2589,6 +2589,11 @@ void Aura::HandleAuraMounted(bool apply, bool Real)
 
     if (apply)
     {
+
+        // Remove stealth/invisibility at mount aura apply.
+        target->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
+        target->RemoveSpellsCausingAura(SPELL_AURA_MOD_INVISIBILITY);
+
         CreatureInfo const* ci = ObjectMgr::GetCreatureTemplate(m_modifier.m_miscvalue);
         if (!ci)
         {
@@ -3898,6 +3903,25 @@ void Aura::HandleInvisibility(bool apply, bool Real)
                     target->SetVisibility(VISIBILITY_ON);
             }
         }
+    }
+}
+
+void Aura::HandleShadowSight(bool apply, bool Real){
+
+    Unit *target = GetTarget();
+    if(apply){
+
+        if( Real ){
+            // Remove rogue stealth/mage invisibility.
+            target->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
+            target->RemoveSpellsCausingAura(SPELL_AURA_MOD_INVISIBILITY);
+            // Make rogues/druids can't restealth.
+            target->ModifyAuraState(AURA_STATE_FAERIE_FIRE, true);
+        }
+    }
+    else{
+        // Remove aura if Shadow Sight fade.
+        target->ModifyAuraState(AURA_STATE_FAERIE_FIRE, false);
     }
 }
 
