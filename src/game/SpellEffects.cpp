@@ -4651,9 +4651,9 @@ void Spell::EffectHealMaxHealth(SpellEffectIndex /*eff_idx*/)
 
 void Spell::EffectInterruptCast(SpellEffectIndex /*eff_idx*/)
 {
-    if (!unitTarget)
+    if(!unitTarget)
         return;
-    if (!unitTarget->isAlive())
+    if(!unitTarget->isAlive())
         return;
 
     // TODO: not all spells that used this effect apply cooldown at school spells
@@ -4663,11 +4663,39 @@ void Spell::EffectInterruptCast(SpellEffectIndex /*eff_idx*/)
         if (Spell* spell = unitTarget->GetCurrentSpell(CurrentSpellTypes(i)))
         {
             SpellEntry const* curSpellInfo = spell->m_spellInfo;
-            // check if we can interrupt spell
-            if ((curSpellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_INTERRUPT) && curSpellInfo->PreventionType == SPELL_PREVENTION_TYPE_SILENCE)
-            {
-                unitTarget->ProhibitSpellSchool(GetSpellSchoolMask(curSpellInfo), GetSpellDuration(m_spellInfo));
-                unitTarget->InterruptSpell(CurrentSpellTypes(i), false);
+            int32 duration = GetSpellDuration(m_spellInfo);
+
+            if( duration > 0 ){
+
+                int32 mechanic = m_spellInfo->Mechanic;
+
+                // Find total mod value (negative bonus)
+                int32 DurationModAlways = unitTarget->GetTotalAuraModifierByMiscValue(SPELL_AURA_MECHANIC_DURATION_MOD, mechanic);
+                // Find max mod (negative bonus)
+                int32 DurationModNotStack = unitTarget->GetMaxNegativeAuraModifierByMiscValue(SPELL_AURA_MECHANIC_DURATION_MOD_NOT_STACK, mechanic);
+
+                int32 DurationMod = 0;
+                // Select strongest negative mod
+                if (DurationModAlways > DurationModNotStack)
+                    DurationMod = DurationModNotStack;
+                else
+                    DurationMod = DurationModAlways;
+
+                // Calculare final duration
+                if (DurationMod != 0)
+                    duration = int32(int64(duration) * (100 + DurationMod) /100);
+
+                if (duration < 0) duration = 0;
+
+                // check if we can interrupt spell
+                if ( (curSpellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_INTERRUPT) &&
+                     (curSpellInfo->PreventionType == SPELL_PREVENTION_TYPE_SILENCE) ){
+
+                    // Prohibit spell school if duration exist.
+                    if( duration > 0 )
+                        unitTarget->ProhibitSpellSchool(GetSpellSchoolMask(curSpellInfo), duration);
+                    unitTarget->InterruptSpell(CurrentSpellTypes(i),false);
+                }
             }
         }
     }
