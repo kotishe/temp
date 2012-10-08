@@ -180,8 +180,19 @@ void PathFinder::BuildPolyPath(const Vector3& startPos, const Vector3& endPos)
     {
         DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ BuildPolyPath :: (startPoly == 0 || endPoly == 0)\n");
         BuildShortcut();
-        m_type = (m_sourceUnit->GetTypeId() == TYPEID_UNIT && ((Creature*)m_sourceUnit)->CanFly())
-                 ? PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH) : PATHFIND_NOPATH;
+
+        // Check for swimming or flying shortcut
+        if (m_sourceUnit->GetTypeId() == TYPEID_UNIT)
+        {
+            if ((startPoly == INVALID_POLYREF && m_sourceUnit->GetTerrain()->IsUnderWater(startPos.x, startPos.y, startPos.z)) ||
+                    (endPoly == INVALID_POLYREF && m_sourceUnit->GetTerrain()->IsUnderWater(endPos.x, endPos.y, endPos.z)))
+                m_type = ((Creature*)m_sourceUnit)->CanSwim() ? PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH) : PATHFIND_NOPATH;
+            else
+                m_type = ((Creature*)m_sourceUnit)->CanFly() ? PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH) : PATHFIND_NOPATH;
+        }
+        else
+            m_type = PATHFIND_NOPATH;
+
         return;
     }
 
@@ -581,7 +592,7 @@ uint32 PathFinder::fixupCorridor(dtPolyRef* path, uint32 npath, uint32 maxPath,
     // Adjust beginning of the buffer to include the visited.
     uint32 req = nvisited - furthestVisited;
     uint32 orig = uint32(furthestPath + 1) < npath ? furthestPath + 1 : npath;
-    uint32 size = npath - orig > 0 ? npath - orig : 0;
+    uint32 size = npath > orig ? npath - orig : 0;
     if (req + size > maxPath)
         size = maxPath - req;
 
