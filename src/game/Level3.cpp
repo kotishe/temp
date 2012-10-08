@@ -57,6 +57,7 @@
 #include "CreatureEventAIMgr.h"
 #include "AuctionHouseBot/AuctionHouseBot.h"
 #include "SQLStorages.h"
+#include "WardenDataStorage.h"
 
 static uint32 ahbotQualityIds[MAX_AUCTION_QUALITY] =
 {
@@ -804,6 +805,14 @@ bool ChatHandler::HandleReloadBattleEventCommand(char* /*args*/)
     sLog.outString("Re-Loading BattleGround Eventindexes...");
     sBattleGroundMgr.LoadBattleEventIndexes();
     SendGlobalSysMessage("DB table `gameobject_battleground` and `creature_battleground` reloaded.");
+    return true;
+}
+
+bool ChatHandler::HandleReloadWarden(char* /*args*/)
+{
+    sLog.outString( "Re-Loading Warden..." );
+    WardenDataStorage.Init(true);
+    SendGlobalSysMessage("Warden DB reloaded.");
     return true;
 }
 

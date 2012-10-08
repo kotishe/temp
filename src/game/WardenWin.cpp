@@ -344,6 +344,7 @@ void WardenWin::HandleData(ByteBuffer &buff)
     if (!IsValidCheckSum(Checksum, buff.contents() + buff.rpos(), Length))
     {
         buff.rpos(buff.wpos());
+        sLog.outWarden("Invalid CheckSum for account Id %u", Client->GetAccountId());
         if (sWorld.getConfig(CONFIG_BOOL_WARDEN_KICK))
             Client->KickPlayer();
         else
