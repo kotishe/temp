@@ -1299,7 +1299,7 @@ void Player::Update(uint32 update_diff, uint32 p_time)
         if (update_diff >= m_DetectInvTimer)
         {
             HandleStealthedUnitsDetection();
-            m_DetectInvTimer = 3000;
+            m_DetectInvTimer = 200;
         }
         else
             m_DetectInvTimer -= update_diff;
