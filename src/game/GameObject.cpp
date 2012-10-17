@@ -68,10 +68,6 @@ GameObject::GameObject() : WorldObject(),
 
 GameObject::~GameObject()
 {
-    // store the capture point slider value (for non visual, non locked capture points)
-    GameObjectInfo const* goInfo = GetGOInfo();
-    if (goInfo && goInfo->type == GAMEOBJECT_TYPE_CAPTURE_POINT && goInfo->capturePoint.radius && m_lootState == GO_ACTIVATED)
-        sOutdoorPvPMgr.SetCapturePointSlider(GetEntry(), m_captureSlider);
 }
 
 void GameObject::AddToWorld()
@@ -85,6 +81,13 @@ void GameObject::AddToWorld()
 
 void GameObject::RemoveFromWorld()
 {
+    // store the slider value for non instance, non locked capture points
+    if (!GetMap()->IsBattleGroundOrArena())
+    {
+        if (GetGOInfo()->type == GAMEOBJECT_TYPE_CAPTURE_POINT && m_lootState == GO_ACTIVATED)
+            sOutdoorPvPMgr.SetCapturePointSlider(GetEntry(), m_captureSlider);
+    }
+
     ///- Remove the gameobject from the accessor
     if (IsInWorld())
     {
@@ -160,19 +163,25 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map* map, float x, float
 
     SetGoAnimProgress(animprogress);
 
-    // set initial data and activate non visual-only capture points
-    if (goinfo->type == GAMEOBJECT_TYPE_CAPTURE_POINT && goinfo->capturePoint.radius)
-        SetCapturePointSlider(sOutdoorPvPMgr.GetCapturePointSliderValue(goinfo->id));
+    // Notify the battleground script
+    if (map->IsBattleGroundOrArena())
+        ((BattleGroundMap*)map)->GetBG()->HandleGameObjectCreate(this);
+    else
+    {
+        // set initial data and activate non instance capture points
+        if (goinfo->type == GAMEOBJECT_TYPE_CAPTURE_POINT)
+            SetCapturePointSlider(sOutdoorPvPMgr.GetCapturePointSliderValue(goinfo->id));
+
+        // Notify the outdoor pvp script
+        if (OutdoorPvP* outdoorPvP = sOutdoorPvPMgr.GetScript(GetZoneId()))
+            outdoorPvP->HandleGameObjectCreate(this);
+    }
 
     // Notify the map's instance data.
     // Only works if you create the object in it, not if it is moves to that map.
     // Normally non-players do not teleport to other maps.
     if (InstanceData* iData = map->GetInstanceData())
         iData->OnObjectCreate(this);
-
-    // Notify the outdoor pvp script
-    if (OutdoorPvP* outdoorPvP = sOutdoorPvPMgr.GetScript(GetZoneId()))
-        outdoorPvP->HandleGameObjectCreate(this);
 
     return true;
 }
@@ -342,9 +351,8 @@ void GameObject::Update(uint32 update_diff, uint32 p_time)
                         if (IsBattleGroundTrap && ok->GetTypeId() == TYPEID_PLAYER)
                         {
                             // BattleGround gameobjects case
-                            if (((Player*)ok)->InBattleGround())
-                                if (BattleGround* bg = ((Player*)ok)->GetBattleGround())
-                                    bg->HandleTriggerBuff(GetObjectGuid());
+                            if (BattleGround* bg = ((Player*)ok)->GetBattleGround())
+                                bg->HandleTriggerBuff(GetObjectGuid());
                         }
                     }
                 }
@@ -1901,8 +1909,8 @@ void GameObject::TickCapturePoint()
 
     // search for players in radius
     std::list<Player*> capturingPlayers;
-    MaNGOS::AnyPlayerInObjectRangeWithOutdoorPvPCheck u_check(this, radius);
-    MaNGOS::PlayerListSearcher<MaNGOS::AnyPlayerInObjectRangeWithOutdoorPvPCheck> checker(capturingPlayers, u_check);
+    MaNGOS::AnyPlayerInCapturePointRange u_check(this, radius);
+    MaNGOS::PlayerListSearcher<MaNGOS::AnyPlayerInCapturePointRange> checker(capturingPlayers, u_check);
     Cell::VisitWorldObjects(this, checker, radius);
 
     GuidSet tempUsers(m_UniqueUsers);
@@ -2068,8 +2076,14 @@ void GameObject::TickCapturePoint()
 
     if (eventId)
     {
-        // Notify the outdoor pvp script
-        if (OutdoorPvP* outdoorPvP = sOutdoorPvPMgr.GetScript((*capturingPlayers.begin())->GetCachedZoneId()))
+        // Notify the battleground or outdoor pvp script
+        if (BattleGround* bg = (*capturingPlayers.begin())->GetBattleGround())
+        {
+            // Allow only certain events to be handled by other script engines
+            if (bg->HandleEvent(eventId, this))
+                return;
+        }
+        else if (OutdoorPvP* outdoorPvP = sOutdoorPvPMgr.GetScript((*capturingPlayers.begin())->GetCachedZoneId()))
         {
             // Allow only certain events to be handled by other script engines
             if (outdoorPvP->HandleEvent(eventId, this))
