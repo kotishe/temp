@@ -312,14 +312,14 @@ void BattleGroundAV::EndBattleGround(Team winner)
         if (m_Nodes[i].State == POINT_CONTROLLED && m_Nodes[i].Owner != BG_AV_TEAM_NEUTRAL)
             ++graves_owned[m_Nodes[i].Owner];
 
-    for (uint8 i = 0; i < BG_AV_MAX_MINES; ++i)
+    for (uint32 i = 0; i < BG_AV_MAX_MINES; ++i)
         if (m_Mine_Owner[i] != BG_AV_TEAM_NEUTRAL)
             ++mines_owned[m_Mine_Owner[i]];
 
     // now we have the values give the honor/reputation to the teams:
     Team team[BG_TEAMS_COUNT]      = { ALLIANCE, HORDE };
     uint32 faction[BG_TEAMS_COUNT]   = { BG_AV_FACTION_A, BG_AV_FACTION_H };
-    for (uint8 i = 0; i < BG_TEAMS_COUNT; ++i)
+    for (uint32 i = 0; i < BG_TEAMS_COUNT; ++i)
     {
         if (tower_survived[i])
         {
@@ -611,7 +611,7 @@ void BattleGroundAV::EventPlayerAssaultsPoint(Player* player, BG_AV_Nodes node)
 void BattleGroundAV::FillInitialWorldStates(WorldPacket& data, uint32& count)
 {
     bool stateok;
-    for (uint8 i = BG_AV_NODES_FIRSTAID_STATION; i < BG_AV_NODES_MAX; ++i)
+    for (uint32 i = BG_AV_NODES_FIRSTAID_STATION; i < BG_AV_NODES_MAX; ++i)
     {
         for (uint8 j = 0; j < BG_AV_MAX_STATES; ++j)
         {

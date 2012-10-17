@@ -514,7 +514,7 @@ void BattleGroundWS::Reset()
     m_ActiveEvents[WS_EVENT_FLAG_A] = BG_EVENT_NONE;
     m_ActiveEvents[WS_EVENT_FLAG_H] = BG_EVENT_NONE;
 
-    for (uint8 i = 0; i < BG_TEAMS_COUNT; ++i)
+    for (uint32 i = 0; i < BG_TEAMS_COUNT; ++i)
     {
         m_DroppedFlagGuid[i].Clear();
         m_FlagKeepers[i].Clear();
