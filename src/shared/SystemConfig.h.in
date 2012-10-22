@@ -20,7 +20,7 @@
 #define MANGOS_SYSTEMCONFIG_H
 
 #ifndef _PACKAGENAME
-#define _PACKAGENAME "Atlantis core rev. 00078 based on MaNGOS One"
+#define _PACKAGENAME "Atlantis core rev. 00079 based on MaNGOS One"
 #endif
 
 #include "Platform/Define.h"

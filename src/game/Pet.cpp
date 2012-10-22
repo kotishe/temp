@@ -974,13 +974,13 @@ void Pet::GivePetXP(uint32 xp)
     uint32 level = getLevel();
     uint32 maxlevel = std::min(sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL), GetOwner()->getLevel());
 
-    // pet not receive xp for level equal to owner level
-    if (level >= maxlevel)
-        return;
-
     uint32 nextLvlXP = GetUInt32Value(UNIT_FIELD_PETNEXTLEVELEXP);
     uint32 curXP = GetUInt32Value(UNIT_FIELD_PETEXPERIENCE);
     uint32 newXP = curXP + xp;
+
+    // Don't give pet next level if current pet level = player level.
+    if( newXP >= nextLvlXP && level = maxlevel )
+        return;
 
     while (newXP >= nextLvlXP && level < maxlevel)
     {
