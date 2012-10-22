@@ -103,7 +103,7 @@ void BattleGroundEY::StartingEventOpenDoors()
     // eye-doors are despawned, not opened
     SpawnEvent(BG_EVENT_DOOR, 0, false);
 
-    for (uint8 i = 0; i < BG_EY_NODES_MAX; ++i)
+    for (uint32 i = 0; i < BG_EY_NODES_MAX; ++i)
     {
         // randomly spawn buff
         uint8 buff = urand(0, 2);
@@ -314,7 +314,7 @@ void BattleGroundEY::AddPlayer(Player* plr)
 void BattleGroundEY::RemovePlayer(Player* plr, ObjectGuid guid)
 {
     // sometimes flag aura not removed :(
-    for (uint8 j = BG_EY_NODES_MAX; j >= 0; --j)
+    for (int j = BG_EY_NODES_MAX; j >= 0; --j)
     {
         for (size_t i = 0; i < m_PlayersNearPoint[j].size(); ++i)
             if (m_PlayersNearPoint[j][i] == guid)
@@ -387,7 +387,7 @@ void BattleGroundEY::HandleAreaTrigger(Player* source, uint32 trigger)
 bool BattleGroundEY::SetupBattleGround()
 {
     // buffs
-    for (uint8 i = 0; i < BG_EY_NODES_MAX; ++i)
+    for (int i = 0; i < BG_EY_NODES_MAX; ++i)
     {
         AreaTriggerEntry const* at = sAreaTriggerStore.LookupEntry(m_Points_Trigger[i]);
         if (!at)
