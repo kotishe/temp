@@ -2633,7 +2633,14 @@ void Aura::HandleAuraWaterWalk(bool apply, bool Real)
     if (!Real)
         return;
 
-    GetTarget()->SetWaterWalk(apply);
+    WorldPacket data;
+    if (apply)
+        data.Initialize(SMSG_MOVE_WATER_WALK, 8 + 4);
+    else
+        data.Initialize(SMSG_MOVE_LAND_WALK, 8 + 4);
+    data << GetTarget()->GetPackGUID();
+    data << uint32(0);
+    GetTarget()->SendMessageToSet(&data, true);
 }
 
 void Aura::HandleAuraFeatherFall(bool apply, bool Real)
@@ -3659,7 +3666,10 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
             target->SetStandState(UNIT_STAND_STATE_STAND);// in 1.5 client
         }
 
-        target->SetRoot(true);
+        WorldPacket data(SMSG_FORCE_MOVE_ROOT, 8);
+        data << target->GetPackGUID();
+        data << uint32(0);
+        target->SendMessageToSet(&data, true);
 
         // Summon the Naj'entus Spine GameObject on target if spell is Impaling Spine
         if (GetId() == 39837)
@@ -3714,7 +3724,10 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
             if (target->getVictim() && target->isAlive())
                 target->SetTargetGuid(target->getVictim()->GetObjectGuid());
 
-            target->SetRoot(false);
+            WorldPacket data(SMSG_FORCE_MOVE_UNROOT, 8 + 4);
+            data << target->GetPackGUID();
+            data << uint32(0);
+            target->SendMessageToSet(&data, true);
         }
 
         // Wyvern Sting
@@ -3973,7 +3986,10 @@ void Aura::HandleAuraModRoot(bool apply, bool Real)
 
         if (target->GetTypeId() == TYPEID_PLAYER)
         {
-            target->SetRoot(true);
+            WorldPacket data(SMSG_FORCE_MOVE_ROOT, 10);
+            data << target->GetPackGUID();
+            data << (uint32)2;
+            target->SendMessageToSet(&data, true);
 
             // Clear unit movement flags
             ((Player*)target)->m_movementInfo.SetMovementFlags(MOVEFLAG_NONE);
@@ -4018,7 +4034,12 @@ void Aura::HandleAuraModRoot(bool apply, bool Real)
                 target->SetTargetGuid(target->getVictim()->GetObjectGuid());
 
             if (target->GetTypeId() == TYPEID_PLAYER)
-                target->SetRoot(false);
+            {
+                WorldPacket data(SMSG_FORCE_MOVE_UNROOT, 10);
+                data << target->GetPackGUID();
+                data << (uint32)2;
+                target->SendMessageToSet(&data, true);
+            }
         }
     }
 }
