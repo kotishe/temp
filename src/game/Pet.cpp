@@ -979,7 +979,7 @@ void Pet::GivePetXP(uint32 xp)
     uint32 newXP = curXP + xp;
 
     // Don't give pet next level if current pet level = player level.
-    if( newXP >= nextLvlXP && level = maxlevel )
+    if( newXP >= nextLvlXP && level == maxlevel )
         return;
 
     while (newXP >= nextLvlXP && level < maxlevel)
@@ -992,7 +992,7 @@ void Pet::GivePetXP(uint32 xp)
         nextLvlXP = GetUInt32Value(UNIT_FIELD_PETNEXTLEVELEXP);
     }
 
-    SetUInt32Value(UNIT_FIELD_PETEXPERIENCE, level < maxlevel ? newXP : 0);
+    SetUInt32Value(UNIT_FIELD_PETEXPERIENCE, level <= maxlevel ? newXP : 0);
 
     if (getPetType() == HUNTER_PET)
         KillLoyaltyBonus(level);
