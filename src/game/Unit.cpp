@@ -1646,7 +1646,7 @@ void Unit::CalculateMeleeDamage(Unit* pVictim, uint32 damage, CalcDamageInfo* da
 
         // Calculate absorb & resists
         damageInfo->target->CalculateDamageAbsorbAndResist(this, damageInfo->damageSchoolMask, DIRECT_DAMAGE, damageInfo->damage, &damageInfo->absorb, &damageInfo->resist, true);
-        damageInfo->damage -= damageInfo->absorb + damageInfo->resist;
+        damageInfo->damage -= ( damageInfo->absorb + damageInfo->resist );
         if (damageInfo->absorb)
         {
             damageInfo->HitInfo |= HITINFO_ABSORB;
@@ -1656,7 +1656,7 @@ void Unit::CalculateMeleeDamage(Unit* pVictim, uint32 damage, CalcDamageInfo* da
             damageInfo->HitInfo |= HITINFO_RESIST;
 
     }
-    else // Umpossible get negative result but....
+    else // Impossible get negative result but....
         damageInfo->damage = 0;
 }
 
@@ -2612,10 +2612,10 @@ float Unit::MeleeSpellMissChance(Unit* pVictim, WeaponAttackType attType, int32 
     float hitChance = 0.0f;
 
     // PvP - PvE melee chances
-    if (pVictim->GetTypeId() == TYPEID_PLAYER)
-        hitChance = 95.0f + skillDiff * 0.04f;
-    else if (skillDiff < -10)
-        hitChance = 93.0f + (skillDiff + 10) * 0.4f;        // 7% base chance to miss for big skill diff (%6 in 3.x)
+    if( skillDiff < -10 )
+        hitChance = 93.0f + ( skillDiff + 10 ) * 0.4f;
+    else if( skillDiff > 10 )
+        hitChance = 97.0f + ( skillDiff - 10 ) * 0.4f;
     else
         hitChance = 95.0f + skillDiff * 0.1f;
 
@@ -2624,10 +2624,13 @@ float Unit::MeleeSpellMissChance(Unit* pVictim, WeaponAttackType attType, int32 
         hitChance += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_RANGED_HIT_CHANCE);
     else
         hitChance += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_MELEE_HIT_CHANCE);
+    DEBUG_LOG("=========================================");
+    DEBUG_LOG("skillDiff = %d", skillDiff);
+    DEBUG_LOG("=========================================");
 
     // Spellmod from SPELLMOD_RESIST_MISS_CHANCE
-    if (Player* modOwner = GetSpellModOwner())
-        modOwner->ApplySpellMod(spell->Id, SPELLMOD_RESIST_MISS_CHANCE, hitChance);
+    if ( Player * owner = GetSpellModOwner() )
+        owner->ApplySpellMod(spell->Id, SPELLMOD_RESIST_MISS_CHANCE, hitChance);
 
     // Miss = 100 - hit
     float missChance = 100.0f - hitChance;
@@ -2638,12 +2641,13 @@ float Unit::MeleeSpellMissChance(Unit* pVictim, WeaponAttackType attType, int32 
     else
         missChance -= m_modMeleeHitChance;
 
-    // Limit miss chance from 0 to 60%
-    if (missChance < 0.0f)
+    // Limit miss chance from 0 to 75%
+    if (missChance <= 0.0f)
         return 0.0f;
-    if (missChance > 60.0f)
-        return 60.0f;
-    return missChance;
+    else if (missChance > 75.0f)
+        return 75.0f;
+    else
+        return missChance;
 }
 
 // Melee based spells hit result calculations
@@ -2664,6 +2668,9 @@ SpellMissInfo Unit::MeleeSpellHitResult(Unit* pVictim, SpellEntry const* spell)
     uint32 missChance = uint32(MeleeSpellMissChance(pVictim, attType, fullSkillDiff, spell) * 100.0f);
     // Roll miss
     uint32 tmp = spell->HasAttribute(SPELL_ATTR_EX3_CANT_MISS) ? 0 : missChance;
+    DEBUG_LOG("==============================================");
+    DEBUG_LOG("tmp = %d, roll = %d", tmp, roll);
+    DEBUG_LOG("==============================================");
     if (roll < tmp)
         return SPELL_MISS_MISS;
 
@@ -2778,11 +2785,11 @@ SpellMissInfo Unit::MagicSpellHitResult(Unit* pVictim, SpellEntry const* spell)
     SpellSchoolMask schoolMask = GetSpellSchoolMask(spell);
     // PvP - PvE spell misschances per leveldif > 2
     int32 lchance = pVictim->GetTypeId() == TYPEID_PLAYER ? 7 : 11;
-    int32 leveldif = int32(pVictim->GetLevelForTarget(this)) - int32(GetLevelForTarget(pVictim));
+    int32 leveldif = int32(GetLevelForTarget(pVictim)) - int32(pVictim->GetLevelForTarget(this));
 
     // Base hit chance from attacker and victim levels
     int32 modHitChance;
-    if (leveldif < 3)
+    if (leveldif <= 2)
         modHitChance = 96 - leveldif;
     else
         modHitChance = 94 - (leveldif - 2) * lchance;
@@ -2827,8 +2834,9 @@ SpellMissInfo Unit::MagicSpellHitResult(Unit* pVictim, SpellEntry const* spell)
     if (pVictim->GetTypeId() == TYPEID_PLAYER)
         HitChance -= int32(((Player*)pVictim)->GetRatingBonusValue(CR_HIT_TAKEN_SPELL) * 100.0f);
 
-    if (HitChance <  100) HitChance =  100;
-    if (HitChance > 9900) HitChance = 9900;
+    // Spell hit chance can't be less than 1%
+    if( HitChance < 100 )
+        HitChance = 100;
 
     int32 tmp = spell->HasAttribute(SPELL_ATTR_EX3_CANT_MISS) ? 0 : (10000 - HitChance);
 
@@ -2932,15 +2940,14 @@ float Unit::MeleeMissChanceCalc(const Unit* pVictim, WeaponAttackType attType) c
             missChance += 19.0f;
     }
 
-    int32 skillDiff = int32(GetWeaponSkillValue(attType, pVictim)) - int32(pVictim->GetDefenseSkillValue(this));
+    int32 skillDiff = int32(pVictim->GetDefenseSkillValue(this)) - int32(GetWeaponSkillValue(attType, pVictim));
 
-    // PvP - PvE melee chances
-    if (pVictim->GetTypeId() == TYPEID_PLAYER)
-        missChance -= skillDiff * 0.04f;
-    else if (skillDiff < -10)
-        missChance -= (skillDiff + 10) * 0.4f - 2.0f;       // 7% base chance to miss for big skill diff (%6 in 3.x)
+    if( skillDiff > 10 )
+        missChance += ( skillDiff - 10 ) * 0.4f + 2.0f;
+    else if( skillDiff < -10 )
+        missChance += ( skillDiff + 10 ) * 0.4f - 2.0f;
     else
-        missChance -=  skillDiff * 0.1f;
+        missChance -= skillDiff * 0.1f;
 
     // Hit chance bonus from attacker based on ratings and auras
     if (attType == RANGED_ATTACK)
@@ -2963,11 +2970,11 @@ float Unit::MeleeMissChanceCalc(const Unit* pVictim, WeaponAttackType attType) c
     else
         missChance -= pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_MELEE_HIT_CHANCE);
 
-    // Limit miss chance from 0 to 60%
+    // Limit miss chance from 0 to 75%
     if (missChance < 0.0f)
         return 0.0f;
-    if (missChance > 60.0f)
-        return 60.0f;
+    if (missChance > 75.0f)
+        return 75.0f;
 
     return missChance;
 }
