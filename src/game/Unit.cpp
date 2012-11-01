@@ -528,9 +528,6 @@ void Unit::DealDamageMods(Unit* pVictim, uint32& damage, uint32* absorb)
 
 uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDamage, DamageEffectType damagetype, SpellSchoolMask damageSchoolMask, SpellEntry const* spellProto, bool durabilityLoss)
 {
-    // remove affects from victim (including from 0 damage and DoTs)
-    if (pVictim != this)
-        pVictim->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
 
     // remove affects from attacker at any non-DoT damage (including 0 damage)
     if (damagetype != DOT)
@@ -553,11 +550,6 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
 
         return 0;
     }
-    if (!spellProto || !IsAuraAddedBySpell(SPELL_AURA_MOD_FEAR, spellProto->Id))
-        pVictim->RemoveSpellbyDamageTaken(SPELL_AURA_MOD_FEAR, damage);
-    // root type spells do not dispel the root effect
-    if (!spellProto || !(spellProto->Mechanic == MECHANIC_ROOT || IsAuraAddedBySpell(SPELL_AURA_MOD_ROOT, spellProto->Id)))
-        pVictim->RemoveSpellbyDamageTaken(SPELL_AURA_MOD_ROOT, damage);
 
     // no xp,health if type 8 /critters/
     if (pVictim->GetTypeId() == TYPEID_UNIT && pVictim->GetCreatureType() == CREATURE_TYPE_CRITTER)
@@ -566,15 +558,14 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
         // Critter may not die of damage taken, instead expect it to run away (no fighting back)
         // If (this) is TYPEID_PLAYER, (this) will enter combat w/victim, but after some time, automatically leave combat.
         // It is unclear how it should work for other cases.
-
         DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "DealDamage critter, critter dies");
-
-        pVictim->SetDeathState(JUST_DIED);
-        pVictim->SetHealth(0);
 
         ((Creature*)pVictim)->SetLootRecipient(this);
 
         JustKilledCreature((Creature*)pVictim);
+
+        pVictim->SetDeathState(JUST_DIED);
+        pVictim->SetHealth(0);
 
         return damage;
     }
@@ -658,10 +649,10 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
 
     if (health <= damage)
     {
-        DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "DealDamage: victim just died");
+        DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "DealDamage %s Killed %s", GetGuidStr().c_str(), pVictim->GetGuidStr().c_str());
 
-        // find player: owner of controlled `this` or `this` itself maybe
-        // for loot will be sued only if group_tap==NULL
+        // Preparation: Who gets credit for killing whom, invoke SpiritOfRedemtion?
+        // for loot will be used only if group_tap == NULL
         Player* player_tap = GetCharmerOrOwnerPlayerOrPlayerItself();
         Group* group_tap = NULL;
 
@@ -680,6 +671,25 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
                 group_tap = player_tap->GetGroup();
         }
 
+        // Spirit of Redemtion Talent
+        bool damageFromSpiritOfRedemtionTalent = spellProto && spellProto->Id == 27795;
+        // if talent known but not triggered (check priest class for speedup check)
+        Aura* spiritOfRedemtionTalentReady = NULL;
+        if (!damageFromSpiritOfRedemtionTalent &&           // not called from SPELL_AURA_SPIRIT_OF_REDEMPTION
+                pVictim->GetTypeId() == TYPEID_PLAYER && pVictim->getClass() == CLASS_PRIEST)
+        {
+            AuraList const& vDummyAuras = pVictim->GetAurasByType(SPELL_AURA_DUMMY);
+            for (AuraList::const_iterator itr = vDummyAuras.begin(); itr != vDummyAuras.end(); ++itr)
+            {
+                if ((*itr)->GetSpellProto()->SpellIconID == 1654)
+                {
+                    spiritOfRedemtionTalentReady = *itr;
+                    break;
+                }
+            }
+        }
+        // Generic Actions (ProcEvents, Combat-Log, Kill Rewards, Stop Combat)
+
         // call kill spell proc event (before real die and combat stop to triggering auras removed at death/combat stop)
         if (player_tap && player_tap != pVictim)
         {
@@ -687,7 +697,7 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
 
             WorldPacket data(SMSG_PARTYKILLLOG, (8 + 8));   // send event PARTY_KILL
             data << player_tap->GetObjectGuid();            // player with killing blow
-            data << pVictim->GetObjectGuid();              // victim
+            data << pVictim->GetObjectGuid();               // victim
 
             if (group_tap)
                 group_tap->BroadcastPacket(&data, false, group_tap->GetMemberGroup(player_tap->GetObjectGuid()), player_tap->GetObjectGuid());
@@ -710,33 +720,17 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
         pVictim->CombatStop();
         pVictim->getHostileRefManager().deleteReferences();
 
-        bool damageFromSpiritOfRedemtionTalent = spellProto && spellProto->Id == 27795;
-
-        // if talent known but not triggered (check priest class for speedup check)
-        Aura* spiritOfRedemtionTalentReady = NULL;
-        if (!damageFromSpiritOfRedemtionTalent &&           // not called from SPELL_AURA_SPIRIT_OF_REDEMPTION
-            pVictim->GetTypeId() == TYPEID_PLAYER && pVictim->getClass() == CLASS_PRIEST)
-        {
-            AuraList const& vDummyAuras = pVictim->GetAurasByType(SPELL_AURA_DUMMY);
-            for (AuraList::const_iterator itr = vDummyAuras.begin(); itr != vDummyAuras.end(); ++itr)
-            {
-                if ((*itr)->GetSpellProto()->SpellIconID == 1654)
-                {
-                    spiritOfRedemtionTalentReady = *itr;
-                    break;
-                }
-            }
-        }
-
         if (!spiritOfRedemtionTalentReady)
         {
             DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "SET JUST_DIED");
+            pVictim->clearUnitState(UNIT_STAT_ROOT); // Remove root
+            pVictim->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE); // Remove nonattackable flag.
             pVictim->SetDeathState(JUST_DIED);
         }
 
         DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "DealDamageHealth1");
 
-        if (spiritOfRedemtionTalentReady)
+        if( spiritOfRedemtionTalentReady )
         {
             // save value before aura remove
             uint32 ressSpellId = pVictim->GetUInt32Value(PLAYER_SELF_RES_SPELL);
@@ -751,14 +745,11 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
 
             // FORM_SPIRITOFREDEMPTION and related auras
             pVictim->CastSpell(pVictim, 27827, true, NULL, spiritOfRedemtionTalentReady);
+            pVictim->addUnitState(UNIT_STAT_ROOT); // Can't move.
+            pVictim->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE); // Can't be attackable.
         }
         else
             pVictim->SetHealth(0);
-
-        // remember victim PvP death for corpse type and corpse reclaim delay
-        // at original death (not at SpiritOfRedemtionTalent timeout)
-        if (pVictim->GetTypeId() == TYPEID_PLAYER && !damageFromSpiritOfRedemtionTalent)
-            ((Player*)pVictim)->SetPvPDeath(player_tap != NULL);
 
         // Call KilledUnit for creatures
         if (GetTypeId() == TYPEID_UNIT && ((Creature*)this)->AI())
@@ -771,6 +762,13 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
         // clean InHateListOf
         if (pVictim->GetTypeId() == TYPEID_PLAYER)
         {
+            Player* playerVictim = (Player*)pVictim;
+
+            // remember victim PvP death for corpse type and corpse reclaim delay
+            // at original death (not at SpiritOfRedemtionTalent timeout)
+            if (!damageFromSpiritOfRedemtionTalent)
+                playerVictim->SetPvPDeath(player_tap != NULL);
+
             // only if not player and not controlled by player pet. And not at BG
             if (durabilityLoss && !player_tap && !((Player*)pVictim)->InBattleGround())
             {
@@ -780,50 +778,48 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
                 WorldPacket data(SMSG_DURABILITY_DAMAGE_DEATH, 0);
                 ((Player*)pVictim)->GetSession()->SendPacket(&data);
             }
-        }
-        else                                                // creature died
-        {
-            DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "DealDamage Killed NPC");
-            JustKilledCreature((Creature*)pVictim);
-        }
 
-        // last damage from non duel opponent or opponent controlled creature
-        if (duel_hasEnded)
-        {
-            MANGOS_ASSERT(pVictim->GetTypeId() == TYPEID_PLAYER);
-            Player* he = (Player*)pVictim;
+            if( !spiritOfRedemtionTalentReady ){              // Before informing Battleground
 
-            MANGOS_ASSERT(he->duel);
+                DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "SET JUST_DIED");
+                pVictim->SetDeathState(JUST_DIED);
+            }
 
-            he->duel->opponent->CombatStopWithPets(true);
-            he->CombatStopWithPets(true);
+            // playerVictim was in duel, duel must be interrupted
+            // last damage from non duel opponent or non opponent controlled creature
+            if( duel_hasEnded ){
 
-            he->DuelComplete(DUEL_INTERUPTED);
-        }
+                playerVictim->duel->opponent->CombatStopWithPets(true);
+                playerVictim->CombatStopWithPets(true);
 
-        // handle player/npc kill in battleground or outdoor pvp script
-        if (player_tap)
-        {
-            if (pVictim->GetTypeId() == TYPEID_PLAYER)
-            {
-                Player* killed = (Player*)pVictim;
-                if (killed->InBattleGround())
-                {
-                    if (BattleGround* bg = killed->GetBattleGround())
-                        bg->HandleKillPlayer(killed, player_tap);
+                playerVictim->DuelComplete(DUEL_INTERUPTED);
+            }
+
+            if( player_tap ){ // PvP kill
+
+                if( playerVictim->InBattleGround() ){
+
+                    if (BattleGround* bg = playerVictim->GetBattleGround())
+                        bg->HandleKillPlayer(playerVictim, player_tap);
                 }
-                else if (pVictim != this)
-                {
+                else if( pVictim != this ){
+
                     // selfkills are not handled in outdoor pvp scripts
-                    if (OutdoorPvP* outdoorPvP = sOutdoorPvPMgr.GetScript(player_tap->GetCachedZoneId()))
-                        outdoorPvP->HandlePlayerKill(player_tap, killed);
+                    if( OutdoorPvP* outdoorPvP = sOutdoorPvPMgr.GetScript(player_tap->GetCachedZoneId()) )
+                        outdoorPvP->HandlePlayerKill(player_tap, playerVictim);
                 }
             }
-            else if (pVictim->GetTypeId() == TYPEID_UNIT)
-            {
-                if (BattleGround* bg = player_tap->GetBattleGround())
+        }
+        else{                                                // creature died
+
+            JustKilledCreature((Creature*)pVictim);
+
+            DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "SET JUST_DIED");
+            pVictim->SetDeathState(JUST_DIED);              // if !spiritOfRedemtionTalentReady always true for unit
+
+            if( player_tap )                                 // killedby Player
+                if( BattleGround* bg = player_tap->GetBattleGround() )
                     bg->HandleKillUnit((Creature*)pVictim, player_tap);
-            }
         }
     }
     else                                                    // if (health <= damage)
@@ -2877,8 +2873,8 @@ SpellMissInfo Unit::SpellHitResult(Unit* pVictim, SpellEntry const* spell, bool 
         return SPELL_MISS_NONE;
 
     // Check for immune (use charges) & aditional check for Mass Dispel. Mass Dispel
-	// does damage & in case it will be checked for immune to damage it return immune.
-	// Check for immune to damage is very horrible for Mass Dispel.
+    // does damage & in case it will be checked for immune to damage it return immune.
+    // Check for immune to damage is very horrible for Mass Dispel.
     if(!(spell->SpellFamilyName == SPELLFAMILY_PRIEST && spell->IsFitToFamilyMask(UI64LIT(0x8000000000)))){
         if(!(spell->Attributes & SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY)){
             if(pVictim->IsImmunedToDamage(GetSpellSchoolMask(spell))){
@@ -3004,8 +3000,8 @@ float Unit::GetUnitDodgeChance() const
     {
         if (((Creature const*)this)->IsTotem())
             return 0.0f;
-		else if ( ((Creature const*)this)->IsShadowfiend() )
-			return 90.0f;
+        else if ( ((Creature const*)this)->IsShadowfiend() )
+            return 90.0f;
         else
         {
             float dodge = 5.0f;
@@ -6052,10 +6048,10 @@ bool Unit::IsSpellCrit(Unit* pVictim, SpellEntry const* spellProto, SpellSchoolM
     switch (spellProto->DmgClass)
     {
         case SPELL_DAMAGE_CLASS_NONE:
-			// Allow Lifebloom & Earth Shield crit.
-			// We need more spells to find a general way (if there is any)
-			if (spellProto->Id != 379 && spellProto->Id != 33778)
-				return false;
+            // Allow Lifebloom & Earth Shield crit.
+            // We need more spells to find a general way (if there is any)
+            if (spellProto->Id != 379 && spellProto->Id != 33778)
+                return false;
         case SPELL_DAMAGE_CLASS_MAGIC:
         {
             if (schoolMask & SPELL_SCHOOL_MASK_NORMAL)
