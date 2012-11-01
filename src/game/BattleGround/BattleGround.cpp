@@ -1171,7 +1171,7 @@ void BattleGround::AddPlayer(Player* plr)
     {
         plr->RemoveArenaSpellCooldowns();
         plr->RemoveArenaAuras();
-        plr->RemoveAllEnchantments(TEMP_ENCHANTMENT_SLOT);
+        plr->RemoveArenaEnchantments(TEMP_ENCHANTMENT_SLOT);
         if (team == ALLIANCE)                               // gold
         {
             if (plr->GetTeam() == HORDE)

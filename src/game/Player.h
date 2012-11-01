@@ -1208,6 +1208,7 @@ public:
     void UpdateItemDuration(uint32 time, bool realtimeonly = false);
     void AddEnchantmentDurations(Item* item);
     void RemoveEnchantmentDurations(Item* item);
+    void RemoveArenaEnchantments(EnchantmentSlot slot);
     void RemoveAllEnchantments(EnchantmentSlot slot);
     void AddEnchantmentDuration(Item* item, EnchantmentSlot slot, uint32 duration);
     void ApplyEnchantment(Item* item, EnchantmentSlot slot, bool apply, bool apply_dur = true, bool ignore_condition = false);
