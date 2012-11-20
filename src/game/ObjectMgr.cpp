@@ -5373,9 +5373,9 @@ AreaTrigger const* ObjectMgr::GetGoBackTrigger(uint32 map_id) const
     {
         if (itr->second.target_mapId == uint32(mapEntry->ghost_entrance_map))
         {
-            AreaTriggerEntry const* atEntry = sAreaTriggerStore.LookupEntry(itr->first);
-            if (atEntry && atEntry->mapid == map_id)
-                return &itr->second;
+            if( AreaTriggerEntry const* atEntry = sAreaTriggerStore.LookupEntry(itr->first) )
+				if( atEntry->mapid == map_id )
+					return &itr->second;
         }
     }
     return NULL;

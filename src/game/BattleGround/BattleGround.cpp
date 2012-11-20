@@ -672,10 +672,11 @@ void BattleGround::UpdateWorldStateForPlayer(uint32 Field, uint32 Value, Player*
 
 void BattleGround::EndBattleGround(Team winner)
 {
-    this->RemoveFromBGFreeSlotQueue();
+	ArenaTeam * winner_arena_team = NULL;
+	ArenaTeam * loser_arena_team = NULL;
+    
+	this->RemoveFromBGFreeSlotQueue();
 
-    ArenaTeam* winner_arena_team = NULL;
-    ArenaTeam* loser_arena_team = NULL;
     uint32 loser_rating = 0;
     uint32 winner_rating = 0;
     WorldPacket data;
@@ -701,12 +702,12 @@ void BattleGround::EndBattleGround(Team winner)
     m_EndTime = TIME_TO_AUTOREMOVE;
 
     // arena rating calculation
-    if (isArena() && isRated())
-    {
-        winner_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(winner));
-        loser_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(GetOtherTeam(winner)));
-        if (winner_arena_team && loser_arena_team)
-        {
+    if( isArena() && isRated() ){
+
+		winner_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(winner));
+		loser_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(GetOtherTeam(winner)));
+        if( winner_arena_team && loser_arena_team ){
+
             loser_rating = loser_arena_team->GetStats().rating;
             winner_rating = winner_arena_team->GetStats().rating;
             int32 winner_change = winner_arena_team->WonAgainst(loser_rating);
@@ -1025,11 +1026,11 @@ void BattleGround::RemovePlayerAtLeave(ObjectGuid guid, bool Transport, bool Sen
 
                 if (isRated() && GetStatus() == STATUS_IN_PROGRESS)
                 {
+					ArenaTeam * winner_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(GetOtherTeam(team)));
+					ArenaTeam * loser_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(team));
                     // left a rated match while the encounter was in progress, consider as loser
-                    ArenaTeam* winner_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(GetOtherTeam(team)));
-                    ArenaTeam* loser_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(team));
-                    if (winner_arena_team && loser_arena_team)
-                        loser_arena_team->MemberLost(plr, winner_arena_team->GetRating());
+                    if( winner_arena_team && loser_arena_team )
+						loser_arena_team->MemberLost(plr, winner_arena_team->GetRating());
                 }
             }
             if (SendPacket)
@@ -1047,11 +1048,11 @@ void BattleGround::RemovePlayerAtLeave(ObjectGuid guid, bool Transport, bool Sen
         {
             if (isRated() && GetStatus() == STATUS_IN_PROGRESS)
             {
+				ArenaTeam * others_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(GetOtherTeam(team)));
+				ArenaTeam * players_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(team));
                 // left a rated match while the encounter was in progress, consider as loser
-                ArenaTeam* others_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(GetOtherTeam(team)));
-                ArenaTeam* players_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(team));
-                if (others_arena_team && players_arena_team)
-                    players_arena_team->OfflineMemberLost(guid, others_arena_team->GetRating());
+                if( others_arena_team && players_arena_team )
+					players_arena_team->OfflineMemberLost(guid, others_arena_team->GetRating());
             }
         }
 
@@ -1755,9 +1756,9 @@ uint32 BattleGround::GetAlivePlayersCountByTeam(Team team) const
     {
         if (itr->second.PlayerTeam == team)
         {
-            Player* pl = sObjectMgr.GetPlayer(itr->first);
-            if (pl && pl->isAlive())
-                ++count;
+            if( Player* pl = sObjectMgr.GetPlayer(itr->first) )
+				if (pl && pl->isAlive())
+					++count;
         }
     }
     return count;

@@ -450,17 +450,18 @@ void Channel::List(Player* player)
         uint32 count  = 0;
         for (PlayerList::const_iterator i = m_players.begin(); i != m_players.end(); ++i)
         {
-            Player* plr = sObjectMgr.GetPlayer(i->first);
+            if( Player* plr = sObjectMgr.GetPlayer(i->first) ){
 
-            // PLAYER can't see MODERATOR, GAME MASTER, ADMINISTRATOR characters
-            // MODERATOR, GAME MASTER, ADMINISTRATOR can see all
-            if (plr && (player->GetSession()->GetSecurity() > SEC_PLAYER || plr->GetSession()->GetSecurity() <= gmLevelInWhoList) &&
-                plr->IsVisibleGloballyFor(player))
-            {
-                data << ObjectGuid(i->first);
-                data << uint8(i->second.flags);             // flags seems to be changed...
-                ++count;
-            }
+				// PLAYER can't see MODERATOR, GAME MASTER, ADMINISTRATOR characters
+				// MODERATOR, GAME MASTER, ADMINISTRATOR can see all
+				if( plr && (player->GetSession()->GetSecurity() > SEC_PLAYER || 
+					plr->GetSession()->GetSecurity() <= gmLevelInWhoList) && plr->IsVisibleGloballyFor(player) ){
+					
+					data << ObjectGuid(i->first);
+					data << uint8(i->second.flags);             // flags seems to be changed...
+					++count;
+				}
+			}
         }
 
         data.put<uint32>(pos, count);

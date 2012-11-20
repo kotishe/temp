@@ -296,12 +296,13 @@ void WorldSession::SendLfgResult(LfgType type, uint32 entry, LfgMode lfg_mode)
             data << uint32(group->GetMembersCount() - 1);   // count of group members without group leader
             for (GroupReference* itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
             {
-                Player* member = itr->getSource();
-                if (member && member->GetObjectGuid() != plr->GetObjectGuid())
-                {
-                    data << member->GetPackGUID();          // packed guid
-                    data << uint32(member->getLevel());     // player level
-                }
+                if( Player* member = itr->getSource() ){
+					if( member->GetObjectGuid() != plr->GetObjectGuid() ){
+                    
+						data << member->GetPackGUID();          // packed guid
+						data << uint32(member->getLevel());     // player level
+					}
+				}
             }
         }
         else

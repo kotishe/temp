@@ -1789,9 +1789,9 @@ bool Pet::learnSpell(uint32 spell_id)
 
     if (!m_loading)
     {
-        Unit* owner = GetOwner();
-        if (owner && owner->GetTypeId() == TYPEID_PLAYER)
-            ((Player*)owner)->PetSpellInitialize();
+        if( Unit* owner = GetOwner() )
+			if( owner->GetTypeId() == TYPEID_PLAYER )
+				((Player*)owner)->PetSpellInitialize();
     }
     return true;
 }

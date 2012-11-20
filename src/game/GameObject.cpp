@@ -111,6 +111,8 @@ void GameObject::RemoveFromWorld()
 
 bool GameObject::Create(uint32 guidlow, uint32 name_id, Map* map, float x, float y, float z, float ang, float rotation0, float rotation1, float rotation2, float rotation3, uint32 animprogress, GOState go_state)
 {
+	if( !map )
+		return false;
     MANGOS_ASSERT(map);
     Relocate(x, y, z, ang);
     SetMap(map);
@@ -203,9 +205,9 @@ void GameObject::Update(uint32 update_diff, uint32 p_time)
                 case GAMEOBJECT_TYPE_TRAP:
                 {
                     // Arming Time for GAMEOBJECT_TYPE_TRAP (6)
-                    Unit* owner = GetOwner();
-                    if (owner && ((Player*)owner)->isInCombat())
-                        m_cooldownTime = time(NULL) + GetGOInfo()->trap.startDelay;
+                    if( Unit* owner = GetOwner() )
+						if( ((Player*)owner)->isInCombat() )
+							m_cooldownTime = time(NULL) + GetGOInfo()->trap.startDelay;
                     m_lootState = GO_READY;
                     break;
                 }
@@ -249,14 +251,15 @@ void GameObject::Update(uint32 update_diff, uint32 p_time)
                     {
                         case GAMEOBJECT_TYPE_FISHINGNODE:   // can't fish now
                         {
-                            Unit* caster = GetOwner();
-                            if (caster && caster->GetTypeId() == TYPEID_PLAYER)
-                            {
-                                caster->FinishSpell(CURRENT_CHANNELED_SPELL);
+                            if( Unit* caster = GetOwner() ){
+								if( caster->GetTypeId() == TYPEID_PLAYER ){
 
-                                WorldPacket data(SMSG_FISH_NOT_HOOKED, 0);
-                                ((Player*)caster)->GetSession()->SendPacket(&data);
-                            }
+									caster->FinishSpell(CURRENT_CHANNELED_SPELL);
+
+									WorldPacket data(SMSG_FISH_NOT_HOOKED, 0);
+									((Player*)caster)->GetSession()->SendPacket(&data);
+								}
+							}
                             // can be deleted
                             m_lootState = GO_JUST_DEACTIVATED;
                             return;
@@ -986,6 +989,9 @@ void GameObject::SwitchDoorOrButton(bool activate, bool alternative /* = false *
 
 void GameObject::Use(Unit* user)
 {
+	if( !user )
+		return;
+
     // user must be provided
     MANGOS_ASSERT(user || PrintEntryError("GameObject::Use (without user)"));
 
@@ -1003,9 +1009,9 @@ void GameObject::Use(Unit* user)
         m_cooldownTime = sWorld.GetGameTime() + cooldown;
     }
 
-    bool scriptReturnValue = user->GetTypeId() == TYPEID_PLAYER && sScriptMgr.OnGameObjectUse((Player*)user, this);
-    if (!scriptReturnValue)
-        GetMap()->ScriptsStart(sGameObjectTemplateScripts, GetEntry(), spellCaster, this);
+    if( bool scriptReturnValue = user->GetTypeId() == TYPEID_PLAYER && sScriptMgr.OnGameObjectUse((Player*)user, this) )
+		if (!scriptReturnValue)
+			GetMap()->ScriptsStart(sGameObjectTemplateScripts, GetEntry(), spellCaster, this);
 
     switch (GetGoType())
     {
@@ -1015,8 +1021,9 @@ void GameObject::Use(Unit* user)
             UseDoorOrButton();
 
             // activate script
-            if (!scriptReturnValue)
-                GetMap()->ScriptsStart(sGameObjectScripts, GetGUIDLow(), spellCaster, this);
+			if( bool scriptReturnValue = user->GetTypeId() == TYPEID_PLAYER && sScriptMgr.OnGameObjectUse((Player*)user, this) )
+				if (!scriptReturnValue)
+					GetMap()->ScriptsStart(sGameObjectScripts, GetGUIDLow(), spellCaster, this);
             return;
         }
         case GAMEOBJECT_TYPE_BUTTON:                        // 1
@@ -1027,8 +1034,9 @@ void GameObject::Use(Unit* user)
             TriggerLinkedGameObject(user);
 
             // activate script
-            if (!scriptReturnValue)
-                GetMap()->ScriptsStart(sGameObjectScripts, GetGUIDLow(), spellCaster, this);
+			if( bool scriptReturnValue = user->GetTypeId() == TYPEID_PLAYER && sScriptMgr.OnGameObjectUse((Player*)user, this) )
+				if (!scriptReturnValue)
+					GetMap()->ScriptsStart(sGameObjectScripts, GetGUIDLow(), spellCaster, this);
 
             return;
         }
@@ -1037,13 +1045,14 @@ void GameObject::Use(Unit* user)
             if (user->GetTypeId() != TYPEID_PLAYER)
                 return;
 
-            Player* player = (Player*)user;
+            if( Player* player = (Player*)user ){
 
-            if (!sScriptMgr.OnGossipHello(player, this))
-            {
-                player->PrepareGossipMenu(this, GetGOInfo()->questgiver.gossipID);
-                player->SendPreparedGossip(this);
-            }
+				if (!sScriptMgr.OnGossipHello(player, this)){
+                
+					player->PrepareGossipMenu(this, GetGOInfo()->questgiver.gossipID);
+					player->SendPreparedGossip(this);
+				}
+			}
 
             return;
         }
@@ -1067,8 +1076,9 @@ void GameObject::Use(Unit* user)
         }
         case GAMEOBJECT_TYPE_GENERIC:                       // 5
         {
-            if (scriptReturnValue)
-                return;
+			if( bool scriptReturnValue = user->GetTypeId() == TYPEID_PLAYER && sScriptMgr.OnGameObjectUse((Player*)user, this) )
+				if (scriptReturnValue)
+					return;
 
             // No known way to exclude some - only different approach is to select despawnable GOs by Entry
             SetLootState(GO_JUST_DEACTIVATED);
@@ -1079,8 +1089,9 @@ void GameObject::Use(Unit* user)
             // Currently we do not expect trap code below to be Use()
             // directly (except from spell effect). Code here will be called by TriggerLinkedGameObject.
 
-            if (scriptReturnValue)
-                return;
+			if( bool scriptReturnValue = user->GetTypeId() == TYPEID_PLAYER && sScriptMgr.OnGameObjectUse((Player*)user, this) )
+				if (scriptReturnValue)
+					return;
 
             // FIXME: when GO casting will be implemented trap must cast spell to target
             if (spellId = GetGOInfo()->trap.spellId)
@@ -1226,8 +1237,9 @@ void GameObject::Use(Unit* user)
                 player->RewardPlayerAndGroupAtCast(this);
             }
 
-            if (scriptReturnValue)
-                return;
+			if( bool scriptReturnValue = user->GetTypeId() == TYPEID_PLAYER && sScriptMgr.OnGameObjectUse((Player*)user, this) )
+				if (scriptReturnValue)
+					return;
 
             // cast this spell later if provided
             spellId = info->goober.spellId;
@@ -1745,17 +1757,18 @@ Player* GameObject::GetLootRecipient() const
     Group* group = GetGroupLootRecipient();
 
     // original recipient player if online
-    Player* player = GetOriginalLootRecipient();
+    if( Player* player = GetOriginalLootRecipient() ){
 
-    // if group not set or disbanded return original recipient player if any
-    if (!group)
-        return player;
+		// if group not set or disbanded return original recipient player if any
+		if (!group)
+			return player;
 
-    // group case
-
-    // return player if it still be in original recipient group
-    if (player && player->GetGroup() == group)
-        return player;
+		// group case
+	
+		// return player if it still be in original recipient group
+		if (player && player->GetGroup() == group)
+			return player;
+	}
 
     // find any in group
     for (GroupReference* itr = group->GetFirstMember(); itr != NULL; itr = itr->next())

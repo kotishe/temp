@@ -241,12 +241,13 @@ void DungeonPersistentState::SaveToDB()
 
     if (Map* map = GetMap())
     {
-        InstanceData* iData = map->GetInstanceData();
-        if (iData && iData->Save())
-        {
-            data = iData->Save();
-            CharacterDatabase.escape_string(data);
-        }
+        if( InstanceData* iData = map->GetInstanceData() ){
+			if( iData->Save() ){
+            
+				data = iData->Save();
+				CharacterDatabase.escape_string(data);
+			}
+		}
     }
 
     CharacterDatabase.PExecute("INSERT INTO instance VALUES ('%u', '%u', '" UI64FMTD "', '%u', '%s')", GetInstanceId(), GetMapId(), (uint64)GetResetTimeForDB(), GetDifficulty(), data.c_str());

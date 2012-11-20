@@ -73,6 +73,9 @@ bool Corpse::Create(uint32 guidlow)
 
 bool Corpse::Create(uint32 guidlow, Player* owner)
 {
+	if( !owner )
+		return false;
+
     MANGOS_ASSERT(owner);
 
     WorldObject::_Create(guidlow, HIGHGUID_CORPSE);

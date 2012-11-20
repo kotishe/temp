@@ -54,7 +54,10 @@ void Camera::UpdateForCurrentViewPoint()
 
 void Camera::SetView(WorldObject* obj, bool update_far_sight_field /*= true*/)
 {
-    MANGOS_ASSERT(obj);
+    if( !obj )
+		return;
+
+	MANGOS_ASSERT(obj)
 
     if (m_source == obj)
         return;
@@ -102,9 +105,10 @@ void Camera::ResetView(bool update_far_sight_field /*= true*/)
 
 void Camera::Event_AddedToWorld()
 {
-    GridType* grid = m_source->GetViewPoint().m_grid;
-    MANGOS_ASSERT(grid);
-    grid->AddWorldObject(this);
+    if( GridType* grid = m_source->GetViewPoint().m_grid ){
+		MANGOS_ASSERT(grid);
+		grid->AddWorldObject(this);
+	}
 
     UpdateVisibilityForOwner();
 }

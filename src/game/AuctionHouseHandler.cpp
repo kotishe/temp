@@ -77,7 +77,7 @@ void WorldSession::SendAuctionCommandResult(AuctionEntry* auc, AuctionAction Act
     {
         case AUCTION_OK:
             if (Action == AUCTION_BID_PLACED)
-                data << uint32(auc->GetAuctionOutBid());    // new AuctionOutBid?
+				data << uint32(auc->GetAuctionOutBid());    // new AuctionOutBid?
             break;
         case AUCTION_ERR_INVENTORY:
             data << uint32(invError);
@@ -516,12 +516,13 @@ void WorldSession::HandleAuctionListBidderItems(WorldPacket& recv_data)
         --outbiddedCount;
         uint32 outbiddedAuctionId;
         recv_data >> outbiddedAuctionId;
-        AuctionEntry* auction = auctionHouse->GetAuction(outbiddedAuctionId);
-        if (auction && auction->BuildAuctionInfo(data))
-        {
-            ++totalcount;
-            ++count;
-        }
+        if( AuctionEntry* auction = auctionHouse->GetAuction(outbiddedAuctionId) ){
+			if (auction && auction->BuildAuctionInfo(data)){
+
+				++totalcount;
+				++count;
+			}
+		}
     }
 
     auctionHouse->BuildListBidderItems(data, pl, count, totalcount);

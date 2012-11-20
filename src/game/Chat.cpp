@@ -1289,6 +1289,9 @@ bool ChatHandler::SetDataForCommandInTable(ChatCommand* commandTable, const char
 
 bool ChatHandler::ParseCommands(const char* text)
 {
+	if( !text )
+		return false;
+
     MANGOS_ASSERT(text);
     MANGOS_ASSERT(*text);
 
