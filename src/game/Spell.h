@@ -489,6 +489,7 @@ protected:
     bool m_needSpellLog;                                // need to send spell log?
     uint8 m_applyMultiplierMask;                        // by effect: damage multiplier needed?
     float m_damageMultipliers[3];                       // by effect: damage multiplier
+	float multi;										// For keeping previous state untill all calculations. Because some one idiot...
 
     // Current targets, to be used in SpellEffects (MUST BE USED ONLY IN SPELL EFFECTS)
     Unit* unitTarget;

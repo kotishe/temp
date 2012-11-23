@@ -967,10 +967,12 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
         }
     }
 
-    // All calculated do it!
+    // All calculated do it! Oh RLY? Idiot... caster->CalculateSpellDamage all calculated... ok.
     // Do healing and triggers
     if (m_healing)
     {
+        // Apply damage multiplier for healing.
+		m_healing *= multi;
         bool crit = real_caster && real_caster->IsSpellCrit(unitTarget, m_spellInfo, m_spellSchoolMask);
         uint32 addhealth = m_healing;
         if (crit)
@@ -1004,8 +1006,12 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
             damageInfo.HitInfo = target->HitInfo;
         }
         // Add bonuses and fill damageInfo struct
-        else
+        else{
             caster->CalculateSpellDamage(&damageInfo, m_damage, m_spellInfo, m_attackType);
+		}
+		
+        // Apply damage multiplier for damage.
+		damageInfo.damage *= multi;
 
         unitTarget->CalculateAbsorbResistBlock(caster, &damageInfo, m_spellInfo);
 
@@ -1223,6 +1229,7 @@ void Spell::DoSpellHitOnUnit(Unit* unit, uint32 effectMask, bool isReflected)
         if (effectMask & (1 << effectNumber))
         {
             HandleEffects(unit, NULL, NULL, SpellEffectIndex(effectNumber), m_damageMultipliers[effectNumber]);
+			multi = m_damageMultipliers[effectNumber];
             if (m_applyMultiplierMask & (1 << effectNumber))
             {
                 // Get multiplier
@@ -1344,6 +1351,7 @@ void Spell::HandleDelayedSpellLaunch(TargetInfo* target)
             if (mask & (1 << effectNumber) && IsEffectHandledOnDelayedSpellLaunch(m_spellInfo, SpellEffectIndex(effectNumber)))
             {
                 HandleEffects(unit, NULL, NULL, SpellEffectIndex(effectNumber), m_damageMultipliers[effectNumber]);
+				multi = m_damageMultipliers[effectNumber];
                 if (m_applyMultiplierMask & (1 << effectNumber))
                 {
                     // Get multiplier
@@ -1382,6 +1390,7 @@ void Spell::InitializeDamageMultipliers()
             (EffectChainTarget > 1))
             m_applyMultiplierMask |= (1 << i);
     }
+	multi = 1.0f;
 }
 
 bool Spell::IsAliveUnitPresentInTargetList()
@@ -4095,11 +4104,6 @@ void Spell::HandleEffects(Unit* pUnitTarget, Item* pItemTarget, GameObject* pGOT
     {
         sLog.outError("WORLD: Spell FX %d > TOTAL_SPELL_EFFECTS ", eff);
     }
-	// Applying damage multiplier after calculating spell damage/bonus healing. Not before!!!
-	if( m_healing )
-		m_healing *= DamageMultiplier;
-	if( m_damage )
-		m_damage *= DamageMultiplier;
 }
 
 void Spell::AddTriggeredSpell(uint32 spellId)
