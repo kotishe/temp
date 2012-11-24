@@ -93,7 +93,6 @@ World::World()
     m_ShutdownTimer = 0;
     m_gameTime = time(NULL);
     m_startTime = m_gameTime;
-    m_maxActiveSessionCount = 0;
     m_maxQueuedSessionCount = 0;
     m_NextDailyQuestReset = 0;
 
@@ -111,6 +110,19 @@ World::World()
 
     for (int i = 0; i < CONFIG_BOOL_VALUE_COUNT; ++i)
         m_configBoolValues[i] = false;
+
+    if( QueryResult *result = LoginDatabase.Query("SELECT `maxplayers` FROM uptime ORDER BY `maxplayers` DESC LIMIT 1 ") ){
+
+      Field *fields = result->Fetch();
+      if( fields ){
+        uint8 max = fields[0].GetUInt8();
+        m_maxActiveSessionCount = max;
+      }
+      else
+        m_maxActiveSessionCount = 0;
+    }
+    else
+      m_maxActiveSessionCount = 0;
 }
 
 /// World destructor
