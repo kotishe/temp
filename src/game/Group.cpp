@@ -222,9 +222,7 @@ bool Group::AddInvite(Player* player)
 
     player->SetGroupInvite(this);
 
-      player->SetGroupInvite(this);
-      return true;
-    }
+    return true;
 }
 
 bool Group::AddLeaderInvite(Player* player)
