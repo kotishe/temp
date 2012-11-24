@@ -392,9 +392,9 @@ DungeonMap* MapManager::CreateDungeonMap(uint32 id, uint32 InstanceId, Difficult
 
 		// some instances only have one difficulty
 		if( !entry->SupportsHeroicMode() )
-			difficulty = DUNGEON_DIFFICULTY_NORMAL;
-		}
-	else{
+            difficulty = DUNGEON_DIFFICULTY_NORMAL;
+    }
+    if( !ObjectMgr::GetInstanceTemplate(id) ){
 		sLog.outError("CreateDungeonMap: no entry for map %d", id);
         MANGOS_ASSERT(false);
 	}

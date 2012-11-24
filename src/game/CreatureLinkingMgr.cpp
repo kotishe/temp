@@ -625,18 +625,18 @@ bool CreatureLinkingHolder::CanSpawn(Creature* pCreature)
 
     // Search for nearby master
     BossGuidMapBounds finds = m_masterGuid.equal_range(pInfo->masterId);
-    for (BossGuidMap::iterator itr = finds.first; itr != finds.second; ++itr)
-    {
-		if( Creature* pMaster = pCreature->GetMap()->GetCreature(itr->second)){
-			if (pMaster && IsSlaveInRangeOfBoss(pCreature, pMaster, pInfo->searchRange)){
-				if (pInfo->linkingFlag & FLAG_CANT_SPAWN_IF_BOSS_DEAD)
-					return pMaster->isAlive();
-				else if (pInfo->linkingFlag & FLAG_CANT_SPAWN_IF_BOSS_ALIVE)
-					return !pMaster->isAlive();
-				else
-					return true;
-			}
-		}
+    for (BossGuidMap::iterator itr = finds.first; itr != finds.second; ++itr){
+
+      if( Creature* pMaster = pCreature->GetMap()->GetCreature(itr->second) ){
+        if( IsSlaveInRangeOfBoss(pCreature, pMaster, pInfo->searchRange) ){
+          if (pInfo->linkingFlag & FLAG_CANT_SPAWN_IF_BOSS_DEAD)
+            return pMaster->isAlive();
+          else if (pInfo->linkingFlag & FLAG_CANT_SPAWN_IF_BOSS_ALIVE)
+            return !pMaster->isAlive();
+          else
+            return true;
+        }
+      }
     }
 
     return true;                                            // local boss does not exist - spawn

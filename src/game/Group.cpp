@@ -208,22 +208,34 @@ void Group::ConvertToRaid()
 
 bool Group::AddInvite(Player* player)
 {
-    if (!player || player->GetGroupInvite())
-        return false;
+    if( !player || player->GetGroupInvite() )
+      return false;
     if( Group* group = player->GetGroup()){
-		if( group->isBGGroup())
-			group = player->GetOriginalGroup();
-		if (group)
-			return false;
 
-		RemoveInvite(player);
+      if( group->isBGGroup()){
+        group = player->GetOriginalGroup();
 
-		m_invitees.insert(player);
+        // If we already have goup & bg group
+        if (group)
+            return false;
+        // We have BG group & have no original
+        else{
+          return false;
+        }
+      }
+      // We already in group
+      else{
+        return false;
+      }
+    }
+    else{
+      RemoveInvite(player);
 
-		player->SetGroupInvite(this);
-	}
+      m_invitees.insert(player);
 
-    return true;
+      player->SetGroupInvite(this);
+      return true;
+    }
 }
 
 bool Group::AddLeaderInvite(Player* player)

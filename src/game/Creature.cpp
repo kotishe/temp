@@ -100,7 +100,7 @@ bool AssistDelayEvent::Execute(uint64 /*e_time*/, uint32 /*p_time*/)
             if( Creature* assistant = m_owner.GetMap()->GetAnyTypeCreature(*m_assistantGuids.rbegin()) ){
 				m_assistantGuids.pop_back();
 
-				if (assistant && assistant->CanAssistTo(&m_owner, victim)){
+                if( assistant->CanAssistTo(&m_owner, victim) ){
                 
 					assistant->SetNoCallAssistance(true);
 					if (assistant->AI())
@@ -993,14 +993,14 @@ Player* Creature::GetLootRecipient() const
     if( Player * player = GetOriginalLootRecipient() ){
 
 		// if group not set or disbanded return original recipient player if any
-		if (!group)
-			return player;
+        if( !group )
+          return player;
 
 		// group case
 
 		// return player if it still be in original recipient group
-		if (player && player->GetGroup() == group)
-			return player;
+        if( player->GetGroup() == group )
+          return player;
 	}
 
     // find any in group

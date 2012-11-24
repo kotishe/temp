@@ -45,13 +45,14 @@ namespace FactorySelector
 
         // select by NPC flags _first_ - otherwise EventAI might be choosen for pets/totems
         // excplicit check for isControlled() and owner type to allow guardian, mini-pets and pets controlled by NPCs to be scripted by EventAI
-		if( Unit * owner = creature->GetOwner() ){
-	        if( (creature->IsPet() && ((Pet*)creature)->isControlled() && owner->GetTypeId() == TYPEID_PLAYER) 
-				|| creature->isCharmed() )
-			    ai_factory = ai_registry.GetRegistryItem("PetAI");
-			else if (creature->IsTotem())
-				ai_factory = ai_registry.GetRegistryItem("TotemAI");
-		}
+        if( Unit * owner = creature->GetOwner() ){
+          if( (creature->IsPet() && ((Pet*)creature)->isControlled() && owner->GetTypeId() == TYPEID_PLAYER)
+              || creature->isCharmed() )
+            ai_factory = ai_registry.GetRegistryItem("PetAI");
+        }
+        else if( creature->IsTotem() )
+          ai_factory = ai_registry.GetRegistryItem("TotemAI");
+
 
         // select by script name
         if (!ai_factory && !ainame.empty())
