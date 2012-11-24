@@ -1196,19 +1196,16 @@ void Player::Update(uint32 update_diff, uint32 p_time)
     {
         UpdateMeleeAttackingState();
 
-        if( Unit* pVictim = getVictim() ){
-		
-			if( !IsNonMeleeSpellCasted(false) ){
-            
-				if( Player* vOwner = pVictim->GetCharmerOrOwnerPlayerOrPlayerItself() ){
-					if( vOwner->IsPvP() && !IsInDuelWith(vOwner) ){
-					
-						UpdatePvP(true);
-						RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ENTER_PVP_COMBAT);
-					}
-				}
-			}
-		}
+        Unit* pVictim = getVictim();
+        if (pVictim && !IsNonMeleeSpellCasted(false))
+        {
+            Player* vOwner = pVictim->GetCharmerOrOwnerPlayerOrPlayerItself();
+            if (vOwner && vOwner->IsPvP() && !IsInDuelWith(vOwner))
+            {
+                UpdatePvP(true);
+                RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ENTER_PVP_COMBAT);
+            }
+        }
     }
 
     if (HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_RESTING))
@@ -1344,11 +1341,9 @@ void Player::Update(uint32 update_diff, uint32 p_time)
     // Group update
     SendUpdateToOutOfRangeGroupMembers();
 
-    if( Pet* pet = GetPet() ){
-		if( !pet->IsWithinDistInMap(this, GetMap()->GetVisibilityDistance()) && 
-			(GetCharmGuid() && (pet->GetObjectGuid() != GetCharmGuid())) )
-			pet->Unsummon(PET_SAVE_REAGENTS, this);
-	}
+    Pet* pet = GetPet();
+    if (pet && !pet->IsWithinDistInMap(this, GetMap()->GetVisibilityDistance()) && (GetCharmGuid() && (pet->GetObjectGuid() != GetCharmGuid())))
+        pet->Unsummon(PET_SAVE_REAGENTS, this);
 
     if (IsHasDelayedTeleport())
         TeleportTo(m_teleport_dest, m_teleport_options);
@@ -3392,16 +3387,15 @@ void Player::RemoveArenaSpellCooldowns()
     {
         next = itr;
         ++next;
-        if( SpellEntry const* entry = sSpellStore.LookupEntry(itr->first) ){
-        
-			// check if spellentry is present and if the cooldown is less than 15 mins
-			if( entry && entry->RecoveryTime <= 15 * MINUTE * IN_MILLISECONDS && 
-				entry->CategoryRecoveryTime <= 15 * MINUTE * IN_MILLISECONDS ){
-            
-				// remove & notify
-				RemoveSpellCooldown(itr->first, true);
-			}
-		}
+        SpellEntry const* entry = sSpellStore.LookupEntry(itr->first);
+        // check if spellentry is present and if the cooldown is less than 15 mins
+        if (entry &&
+            entry->RecoveryTime <= 15 * MINUTE * IN_MILLISECONDS &&
+            entry->CategoryRecoveryTime <= 15 * MINUTE * IN_MILLISECONDS)
+        {
+            // remove & notify
+            RemoveSpellCooldown(itr->first, true);
+        }
     }
 }
 
@@ -5154,14 +5148,12 @@ bool Player::UpdateCraftSkill(uint32 spellid)
             uint32 SkillValue = GetPureSkillValue(_spell_idx->second->skillId);
 
             // Alchemy Discoveries here
-            if( SpellEntry const* spellEntry = sSpellStore.LookupEntry(spellid) ){
-            
-				if( spellEntry->Mechanic == MECHANIC_DISCOVERY ){
-                
-					if (uint32 discoveredSpell = GetSkillDiscoverySpell(_spell_idx->second->skillId, spellid, this))
-						learnSpell(discoveredSpell, false);
-				}
-			}
+            SpellEntry const* spellEntry = sSpellStore.LookupEntry(spellid);
+            if (spellEntry && spellEntry->Mechanic == MECHANIC_DISCOVERY)
+            {
+                if (uint32 discoveredSpell = GetSkillDiscoverySpell(_spell_idx->second->skillId, spellid, this))
+                    learnSpell(discoveredSpell, false);
+            }
 
             uint32 craft_skill_gain = sWorld.getConfig(CONFIG_UINT32_SKILL_GAIN_CRAFTING);
 

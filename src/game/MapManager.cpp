@@ -274,12 +274,8 @@ bool MapManager::ExistMapAndVMap(uint32 mapid, float x, float y)
 
 bool MapManager::IsValidMAP(uint32 mapid)
 {
-	bool valid = false;
-	if( MapEntry const* mEntry = sMapStore.LookupEntry(mapid) ){
-		if( !mEntry->IsDungeon() || ObjectMgr::GetInstanceTemplate(mapid) )
-			valid = true;
-	}
-    return valid;
+    MapEntry const* mEntry = sMapStore.LookupEntry(mapid);
+    return mEntry && (!mEntry->IsDungeon() || ObjectMgr::GetInstanceTemplate(mapid));
     // TODO: add check for battleground template
 }
 
@@ -382,22 +378,21 @@ Map* MapManager::CreateInstance(uint32 id, Player* player)
 DungeonMap* MapManager::CreateDungeonMap(uint32 id, uint32 InstanceId, Difficulty difficulty, DungeonPersistentState* save)
 {
     // make sure we have a valid map id
-    if( const MapEntry* entry = sMapStore.LookupEntry(id) ){
-    
-		if (!ObjectMgr::GetInstanceTemplate(id)){
-        
-			sLog.outError("CreateDungeonMap: no instance template for map %d", id);
-			MANGOS_ASSERT(false);
-		}
-
-		// some instances only have one difficulty
-		if( !entry->SupportsHeroicMode() )
-            difficulty = DUNGEON_DIFFICULTY_NORMAL;
-    }
-    if( !ObjectMgr::GetInstanceTemplate(id) ){
-		sLog.outError("CreateDungeonMap: no entry for map %d", id);
+    const MapEntry* entry = sMapStore.LookupEntry(id);
+    if (!entry)
+    {
+        sLog.outError("CreateDungeonMap: no entry for map %d", id);
         MANGOS_ASSERT(false);
-	}
+    }
+    if (!ObjectMgr::GetInstanceTemplate(id))
+    {
+        sLog.outError("CreateDungeonMap: no instance template for map %d", id);
+        MANGOS_ASSERT(false);
+    }
+
+    // some instances only have one difficulty
+    if (entry && !entry->SupportsHeroicMode())
+        difficulty = DUNGEON_DIFFICULTY_NORMAL;
 
     DEBUG_LOG("MapInstanced::CreateDungeonMap: %s map instance %d for %d created with difficulty %d", save ? "" : "new ", InstanceId, id, difficulty);
 

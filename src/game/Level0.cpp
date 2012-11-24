@@ -97,12 +97,12 @@ bool ChatHandler::HandleServerInfoCommand(char* /*args*/)
 
     char const* full;
     if (m_session)
-        full = _FULLVERSION(REVISION_DATE, REVISION_TIME, REVISION_NR, REVISION_ID);
+        full = _FULLVERSION(REVISION_DATE, REVISION_TIME, REVISION_NR, "|cffffffff|Hurl:" REVISION_ID "|h" REVISION_ID "|h|r");
     else
         full = _FULLVERSION(REVISION_DATE, REVISION_TIME, REVISION_NR, REVISION_ID);
     SendSysMessage(full);
 
-    /*if (sScriptMgr.IsScriptLibraryLoaded())
+    if (sScriptMgr.IsScriptLibraryLoaded())
     {
         char const* ver = sScriptMgr.GetScriptLibraryVersion();
         if (ver && *ver)
@@ -111,7 +111,7 @@ bool ChatHandler::HandleServerInfoCommand(char* /*args*/)
             SendSysMessage(LANG_USING_SCRIPT_LIB_UNKNOWN);
     }
     else
-        SendSysMessage(LANG_USING_SCRIPT_LIB_NONE);*/
+        SendSysMessage(LANG_USING_SCRIPT_LIB_NONE);
 
     PSendSysMessage(LANG_USING_WORLD_DB, sWorld.GetDBVersion());
     PSendSysMessage(LANG_USING_EVENT_AI, sWorld.GetCreatureEventAIVersion());

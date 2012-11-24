@@ -253,25 +253,24 @@ Map::EnsureGridLoadedAtEnter(const Cell& cell, Player* player)
 bool Map::EnsureGridLoaded(const Cell& cell)
 {
     EnsureGridCreated(GridPair(cell.GridX(), cell.GridY()));
-    if( NGridType* grid = getNGrid(cell.GridX(), cell.GridY()) ){
+    NGridType* grid = getNGrid(cell.GridX(), cell.GridY());
 
-		MANGOS_ASSERT(grid != NULL);
-		if (!isGridObjectDataLoaded(cell.GridX(), cell.GridY())){
-        
-			// it's important to set it loaded before loading!
-			// otherwise there is a possibility of infinity chain (grid loading will be called many times for the same grid)
-			// possible scenario:
-			// active object A(loaded with loader.LoadN call and added to the  map)
-			// summons some active object B, while B added to map grid loading called again and so on..
-			setGridObjectDataLoaded(true, cell.GridX(), cell.GridY());
-			ObjectGridLoader loader(*grid, this, cell);
-			loader.LoadN();
+    MANGOS_ASSERT(grid != NULL);
+    if (!isGridObjectDataLoaded(cell.GridX(), cell.GridY()))
+    {
+        // it's important to set it loaded before loading!
+        // otherwise there is a possibility of infinity chain (grid loading will be called many times for the same grid)
+        // possible scenario:
+        // active object A(loaded with loader.LoadN call and added to the  map)
+        // summons some active object B, while B added to map grid loading called again and so on..
+        setGridObjectDataLoaded(true, cell.GridX(), cell.GridY());
+        ObjectGridLoader loader(*grid, this, cell);
+        loader.LoadN();
 
-			// Add resurrectable corpses to world object list in grid
-			sObjectAccessor.AddCorpsesToGrid(GridPair(cell.GridX(), cell.GridY()), (*grid)(cell.CellX(), cell.CellY()), this);
-			return true;
-		}
-	}
+        // Add resurrectable corpses to world object list in grid
+        sObjectAccessor.AddCorpsesToGrid(GridPair(cell.GridX(), cell.GridY()), (*grid)(cell.CellX(), cell.CellY()), this);
+        return true;
+    }
 
     return false;
 }
@@ -312,9 +311,6 @@ template<class T>
 void
 Map::Add(T* obj)
 {
-	if( !obj )
-		return;
-
     MANGOS_ASSERT(obj);
 
     CellPair p = MaNGOS::ComputeCellPair(obj->GetPositionX(), obj->GetPositionY());
@@ -456,13 +452,12 @@ void Map::Update(const uint32& t_diff)
     /// update players at tick
     for (m_mapRefIter = m_mapRefManager.begin(); m_mapRefIter != m_mapRefManager.end(); ++m_mapRefIter)
     {
-        if( Player* plr = m_mapRefIter->getSource() ){
-			if( plr->IsInWorld() ){
-            
-				WorldObject::UpdateHelper helper(plr);
-				helper.Update(t_diff);
-			}
-		}
+        Player* plr = m_mapRefIter->getSource();
+        if (plr && plr->IsInWorld())
+        {
+            WorldObject::UpdateHelper helper(plr);
+            helper.Update(t_diff);
+        }
     }
 
     /// update active cells around players and active objects
@@ -667,9 +662,6 @@ Map::Remove(T* obj, bool remove)
 void
 Map::PlayerRelocation(Player* player, float x, float y, float z, float orientation)
 {
-	if( !player )
-		return;
-
     MANGOS_ASSERT(player);
 
     CellPair old_val = MaNGOS::ComputeCellPair(player->GetPositionX(), player->GetPositionY());
@@ -784,9 +776,6 @@ bool Map::CreatureRespawnRelocation(Creature* c)
 bool Map::UnloadGrid(const uint32& x, const uint32& y, bool pForce)
 {
     NGridType* grid = getNGrid(x, y);
-	if( !grid )
-		return false;
-
     MANGOS_ASSERT(grid != NULL);
 
     {
@@ -1681,14 +1670,8 @@ void Map::ScriptsProcess()
  */
 Player* Map::GetPlayer(ObjectGuid guid)
 {
-    if( Player* plr = ObjectAccessor::FindPlayer(guid) ){		// return only in world players
-		if( plr->GetMap() == this )
-			return plr;
-		else
-			return NULL;
-	}
-	else
-		return NULL;
+    Player* plr = ObjectAccessor::FindPlayer(guid);         // return only in world players
+    return plr && plr->GetMap() == this ? plr : NULL;
 }
 
 /**
@@ -1720,14 +1703,8 @@ Pet* Map::GetPet(ObjectGuid guid)
  */
 Corpse* Map::GetCorpse(ObjectGuid guid)
 {
-    if( Corpse* ret = ObjectAccessor::GetCorpseInMap(guid, GetId()) ){
-		if( ret->GetInstanceId() == GetInstanceId() )
-			return ret;
-		else
-			return NULL;
-	}
-	else
-		return NULL;
+    Corpse* ret = ObjectAccessor::GetCorpseInMap(guid, GetId());
+    return ret && ret->GetInstanceId() == GetInstanceId() ? ret : NULL;
 }
 
 /**
@@ -1798,13 +1775,8 @@ WorldObject* Map::GetWorldObject(ObjectGuid guid)
         case HIGHGUID_CORPSE:
         {
             // corpse special case, it can be not in world
-            if( Corpse* corpse = GetCorpse(guid) )
-				if( corpse->IsInWorld() )
-					return corpse;
-				else
-					return NULL;
-			else
-				return NULL;
+            Corpse* corpse = GetCorpse(guid);
+            return corpse && corpse->IsInWorld() ? corpse : NULL;
         }
         case HIGHGUID_MO_TRANSPORT:
         case HIGHGUID_TRANSPORT:

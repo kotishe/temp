@@ -1192,11 +1192,8 @@ public:
     uint32 GetArmorProficiency() const { return m_ArmorProficiency; }
     bool IsTwoHandUsed() const
     {
-		bool TwoHanded = false;
-        if( Item * mainItem = GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND) )
-			if( mainItem && mainItem->GetProto()->InventoryType == INVTYPE_2HWEAPON )
-				TwoHanded = true;
-		return TwoHanded;
+        Item* mainItem = GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND);
+        return mainItem && mainItem->GetProto()->InventoryType == INVTYPE_2HWEAPON;
     }
     void SendNewItem(Item* item, uint32 count, bool received, bool created, bool broadcast = false);
     bool BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, uint8 bag, uint8 slot);
@@ -1458,11 +1455,9 @@ public:
 
     void AddMItem(Item* it)
     {
-		if( it ){
-			MANGOS_ASSERT(it);
-			// ASSERT deleted, because items can be added before loading
-			mMitems[it->GetGUIDLow()] = it;
-		}
+        MANGOS_ASSERT(it);
+        // ASSERT deleted, because items can be added before loading
+        mMitems[it->GetGUIDLow()] = it;
     }
 
     bool RemoveMItem(uint32 id)
@@ -1657,7 +1652,6 @@ public:
 
     bool UpdateStats(Stats stat) override;
     bool UpdateAllStats() override;
-    void ApplySpellPenetrationBonus(int32 amount, bool apply);
     void UpdateResistances(uint32 school) override;
     void UpdateArmor() override;
     void UpdateMaxHealth() override;

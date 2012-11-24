@@ -85,20 +85,17 @@ void WorldSession::HandleAutostoreLootItemOpcode(WorldPacket& recv_data)
         }
         case HIGHGUID_UNIT:
         {
-            if( Creature* pCreature = GetPlayer()->GetMap()->GetCreature(lguid) ){
+            Creature* pCreature = GetPlayer()->GetMap()->GetCreature(lguid);
 
-				bool ok_loot = false;
-				if( pCreature->isAlive() == (player->getClass() == CLASS_ROGUE && pCreature->lootForPickPocketed) )
-					ok_loot = true;
+            bool ok_loot = pCreature && pCreature->isAlive() == (player->getClass() == CLASS_ROGUE && pCreature->lootForPickPocketed);
 
-				if (!ok_loot || !pCreature->IsWithinDistInMap(_player, INTERACTION_DISTANCE)){
-					player->SendLootRelease(lguid);
-					return;
-				}
+            if (!ok_loot || !pCreature->IsWithinDistInMap(_player, INTERACTION_DISTANCE))
+            {
+                player->SendLootRelease(lguid);
+                return;
+            }
 
-				loot = &pCreature->loot;
-
-			}
+            loot = &pCreature->loot;
             break;
         }
         default:
@@ -190,11 +187,13 @@ void WorldSession::HandleLootMoneyOpcode(WorldPacket & /*recv_data*/)
     {
         case HIGHGUID_GAMEOBJECT:
         {
-          GameObject* pGameObject = GetPlayer()->GetMap()->GetGameObject(guid);
-          // not check distance for GO in case owned GO (fishing bobber case, for example)
-          if (pGameObject && (pGameObject->GetOwnerGuid() == _player->GetObjectGuid() || pGameObject->IsWithinDistInMap(_player, INTERACTION_DISTANCE)))
-            pLoot = &pGameObject->loot;
-          break;
+            GameObject* pGameObject = GetPlayer()->GetMap()->GetGameObject(guid);
+
+            // not check distance for GO in case owned GO (fishing bobber case, for example)
+            if (pGameObject && (pGameObject->GetOwnerGuid() == _player->GetObjectGuid() || pGameObject->IsWithinDistInMap(_player, INTERACTION_DISTANCE)))
+                pLoot = &pGameObject->loot;
+
+            break;
         }
         case HIGHGUID_CORPSE:                               // remove insignia ONLY in BG
         {
@@ -457,30 +456,26 @@ void WorldSession::DoLootRelease(ObjectGuid lguid)
         }
         case HIGHGUID_UNIT:
         {
-            if( Creature* pCreature = GetPlayer()->GetMap()->GetCreature(lguid) ){
+            Creature* pCreature = GetPlayer()->GetMap()->GetCreature(lguid);
 
-				bool ok_loot = false;
-				if( pCreature->isAlive() == (player->getClass() == CLASS_ROGUE && pCreature->lootForPickPocketed) )
-					ok_loot = true;
-            
-				if (!ok_loot || !pCreature->IsWithinDistInMap(_player, INTERACTION_DISTANCE))
-					return;
+            bool ok_loot = pCreature && pCreature->isAlive() == (player->getClass() == CLASS_ROGUE && pCreature->lootForPickPocketed);
+            if (!ok_loot || !pCreature->IsWithinDistInMap(_player, INTERACTION_DISTANCE))
+                return;
 
-				loot = &pCreature->loot;
+            loot = &pCreature->loot;
 
-				// update next looter
-				if (Group* group = pCreature->GetGroupLootRecipient())
-					if (group->GetLooterGuid() == player->GetObjectGuid())
-						group->UpdateLooterGuid(pCreature);
+            // update next looter
+            if (Group* group = pCreature->GetGroupLootRecipient())
+                if (group->GetLooterGuid() == player->GetObjectGuid())
+                    group->UpdateLooterGuid(pCreature);
 
-				if( loot->isLooted() && !pCreature->isAlive() ){
-                
-					// for example skinning after normal loot
-					pCreature->PrepareBodyLootState();
+            if( loot->isLooted() && !pCreature->isAlive() )
+            {
+                // for example skinning after normal loot
+                pCreature->PrepareBodyLootState();
 
-					pCreature->AllLootRemovedFromCorpse();
-				}
-			}
+                pCreature->AllLootRemovedFromCorpse();
+            }
             break;
         }
         default:

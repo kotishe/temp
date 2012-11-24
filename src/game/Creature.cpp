@@ -97,16 +97,15 @@ bool AssistDelayEvent::Execute(uint64 /*e_time*/, uint32 /*p_time*/)
     {
         while (!m_assistantGuids.empty())
         {
-            if( Creature* assistant = m_owner.GetMap()->GetAnyTypeCreature(*m_assistantGuids.rbegin()) ){
-				m_assistantGuids.pop_back();
+            Creature* assistant = m_owner.GetMap()->GetAnyTypeCreature(*m_assistantGuids.rbegin());
+            m_assistantGuids.pop_back();
 
-                if( assistant->CanAssistTo(&m_owner, victim) ){
-                
-					assistant->SetNoCallAssistance(true);
-					if (assistant->AI())
-						assistant->AI()->AttackStart(victim);
-				}
-			}
+            if (assistant && assistant->CanAssistTo(&m_owner, victim))
+            {
+                assistant->SetNoCallAssistance(true);
+                if (assistant->AI())
+                    assistant->AI()->AttackStart(victim);
+            }
         }
     }
     return true;
@@ -990,18 +989,17 @@ Player* Creature::GetLootRecipient() const
     Group* group = GetGroupLootRecipient();
 
     // original recipient player if online
-    if( Player * player = GetOriginalLootRecipient() ){
+    Player* player = GetOriginalLootRecipient();
 
-		// if group not set or disbanded return original recipient player if any
-        if( !group )
-          return player;
+    // if group not set or disbanded return original recipient player if any
+    if (!group)
+        return player;
 
-		// group case
+    // group case
 
-		// return player if it still be in original recipient group
-        if( player->GetGroup() == group )
-          return player;
-	}
+    // return player if it still be in original recipient group
+    if (player && player->GetGroup() == group)
+        return player;
 
     // find any in group
     for (GroupReference* itr = group->GetFirstMember(); itr != NULL; itr = itr->next())

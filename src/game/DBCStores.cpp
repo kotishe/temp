@@ -685,9 +685,9 @@ ChatChannelsEntry const* GetChannelEntryFor(uint32 channel_id)
     // not sorted, numbering index from 0
     for (uint32 i = 0; i < sChatChannelsStore.GetNumRows(); ++i)
     {
-        if( ChatChannelsEntry const* ch = sChatChannelsStore.LookupEntry(i) )
-			if( ch->ChannelID == channel_id )
-				return ch;
+        ChatChannelsEntry const* ch = sChatChannelsStore.LookupEntry(i);
+        if (ch && ch->ChannelID == channel_id)
+            return ch;
     }
     return NULL;
 }

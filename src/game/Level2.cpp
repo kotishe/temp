@@ -226,6 +226,8 @@ bool ChatHandler::HandleTriggerCommand(char* args)
 
         float dist2 = MAP_SIZE * MAP_SIZE;
 
+        Player* pl = m_session->GetPlayer();
+
         // Search triggers
         for (uint32 id = 0; id < sAreaTriggerStore.GetNumRows(); ++id)
         {
@@ -5001,27 +5003,26 @@ bool ChatHandler::HandleCharacterTitlesCommand(char* args)
     // Search in CharTitles.dbc
     for (uint32 id = 0; id < sCharTitlesStore.GetNumRows(); ++id)
     {
-        if( CharTitlesEntry const* titleInfo = sCharTitlesStore.LookupEntry(id) ){
-			if( target->HasTitle(titleInfo) ){
-            
-				std::string name = titleInfo->name[loc];
-				if (name.empty())
-					continue;
+        CharTitlesEntry const* titleInfo = sCharTitlesStore.LookupEntry(id);
+        if (titleInfo && target->HasTitle(titleInfo))
+        {
+            std::string name = titleInfo->name[loc];
+            if (name.empty())
+                continue;
 
-				char const* activeStr = target && target->GetUInt32Value(PLAYER_CHOSEN_TITLE) == titleInfo->bit_index
-										? GetMangosString(LANG_ACTIVE)
-										: "";
+            char const* activeStr = target && target->GetUInt32Value(PLAYER_CHOSEN_TITLE) == titleInfo->bit_index
+                                    ? GetMangosString(LANG_ACTIVE)
+                                    : "";
 
-				char titleNameStr[80];
-				snprintf(titleNameStr, 80, name.c_str(), targetName);
+            char titleNameStr[80];
+            snprintf(titleNameStr, 80, name.c_str(), targetName);
 
-				// send title in "id (idx:idx) - [namedlink locale]" format
-				if (m_session)
-					PSendSysMessage(LANG_TITLE_LIST_CHAT, id, titleInfo->bit_index, id, titleNameStr, localeNames[loc], knownStr, activeStr);
-				else
-					PSendSysMessage(LANG_TITLE_LIST_CONSOLE, id, titleInfo->bit_index, name.c_str(), localeNames[loc], knownStr, activeStr);
-			}
-		}
+            // send title in "id (idx:idx) - [namedlink locale]" format
+            if (m_session)
+                PSendSysMessage(LANG_TITLE_LIST_CHAT, id, titleInfo->bit_index, id, titleNameStr, localeNames[loc], knownStr, activeStr);
+            else
+                PSendSysMessage(LANG_TITLE_LIST_CONSOLE, id, titleInfo->bit_index, name.c_str(), localeNames[loc], knownStr, activeStr);
+        }
     }
     return true;
 }

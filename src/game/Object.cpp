@@ -1483,9 +1483,6 @@ void WorldObject::SendGameObjectCustomAnim(ObjectGuid guid, uint32 animId /*= 0*
 
 void WorldObject::SetMap(Map* map)
 {
-	if( !map )
-		return;
-
     MANGOS_ASSERT(map);
     m_currMap = map;
     // lets save current map's Id/instanceId

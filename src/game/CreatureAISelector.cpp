@@ -45,14 +45,12 @@ namespace FactorySelector
 
         // select by NPC flags _first_ - otherwise EventAI might be choosen for pets/totems
         // excplicit check for isControlled() and owner type to allow guardian, mini-pets and pets controlled by NPCs to be scripted by EventAI
-        if( Unit * owner = creature->GetOwner() ){
-          if( (creature->IsPet() && ((Pet*)creature)->isControlled() && owner->GetTypeId() == TYPEID_PLAYER)
-              || creature->isCharmed() )
+        Unit* owner = NULL;
+        if ((creature->IsPet() && ((Pet*)creature)->isControlled() &&
+             ((owner = creature->GetOwner()) && owner->GetTypeId() == TYPEID_PLAYER)) || creature->isCharmed())
             ai_factory = ai_registry.GetRegistryItem("PetAI");
-        }
-        else if( creature->IsTotem() )
-          ai_factory = ai_registry.GetRegistryItem("TotemAI");
-
+        else if (creature->IsTotem())
+            ai_factory = ai_registry.GetRegistryItem("TotemAI");
 
         // select by script name
         if (!ai_factory && !ainame.empty())
@@ -70,15 +68,14 @@ namespace FactorySelector
             for (RMT::const_iterator iter = l.begin(); iter != l.end(); ++iter)
             {
                 const CreatureAICreator* factory = iter->second;
-                if( const SelectableAI* p = dynamic_cast<const SelectableAI*>(factory) ){
-					MANGOS_ASSERT(p != NULL);
-					int val = p->Permit(creature);
-					if (val > best_val)
-					{
-						best_val = val;
-						ai_factory = p;
-					}
-				}
+                const SelectableAI* p = dynamic_cast<const SelectableAI*>(factory);
+                MANGOS_ASSERT(p != NULL);
+                int val = p->Permit(creature);
+                if (val > best_val)
+                {
+                    best_val = val;
+                    ai_factory = p;
+                }
             }
         }
 

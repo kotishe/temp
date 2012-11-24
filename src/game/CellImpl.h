@@ -102,11 +102,11 @@ Cell::Visit(const CellPair& standing_cell, TypeContainerVisitor<T, CONTAINER> &v
     m.Visit(*this, visitor);
 
     // loop the cell range
-    for (uint32 a = begin_cell.x_coord; a <= end_cell.x_coord; ++a)
+    for (uint32 x = begin_cell.x_coord; x <= end_cell.x_coord; ++x)
     {
-        for (uint32 b = begin_cell.y_coord; b <= end_cell.y_coord; ++b)
+        for (uint32 y = begin_cell.y_coord; y <= end_cell.y_coord; ++y)
         {
-            CellPair cell_pair(a, b);
+            CellPair cell_pair(x, y);
             // lets skip standing cell since we already visited it
             if (cell_pair != standing_cell)
             {

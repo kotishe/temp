@@ -208,30 +208,19 @@ void Group::ConvertToRaid()
 
 bool Group::AddInvite(Player* player)
 {
-    if( !player || player->GetGroupInvite() )
-      return false;
-    if( Group* group = player->GetGroup()){
-
-      if( group->isBGGroup()){
-        group = player->GetOriginalGroup();
-
-        // If we already have goup & bg group
-        if (group)
-            return false;
-        // We have BG group & have no original
-        else{
-          return false;
-        }
-      }
-      // We already in group
-      else{
+    if (!player || player->GetGroupInvite())
         return false;
-      }
-    }
-    else{
-      RemoveInvite(player);
+    Group* group = player->GetGroup();
+    if (group && group->isBGGroup())
+        group = player->GetOriginalGroup();
+    if (group)
+        return false;
 
-      m_invitees.insert(player);
+    RemoveInvite(player);
+
+    m_invitees.insert(player);
+
+    player->SetGroupInvite(this);
 
       player->SetGroupInvite(this);
       return true;
@@ -766,6 +755,7 @@ void Group::CountTheRoll(Rolls::iterator& rollI)
         {
             uint8 maxresul = 0;
             ObjectGuid maxguid  = (*roll->playerVote.begin()).first;
+            Player* player;
 
             for (Roll::PlayerVote::const_iterator itr = roll->playerVote.begin(); itr != roll->playerVote.end(); ++itr)
             {
@@ -781,27 +771,24 @@ void Group::CountTheRoll(Rolls::iterator& rollI)
                 }
             }
             SendLootRollWon(maxguid, maxresul, ROLL_NEED, *roll);
+            player = sObjectMgr.GetPlayer(maxguid);
 
-            if( Player * player = sObjectMgr.GetPlayer(maxguid) ){
-
-                if (player && player->GetSession()){
-
-                    ItemPosCountVec dest;
-                    LootItem* item = &(roll->getLoot()->items[roll->itemSlot]);
-                    InventoryResult msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, roll->itemid, item->count);
-                    if (msg == EQUIP_ERR_OK){
-
-                        item->is_looted = true;
-                        roll->getLoot()->NotifyItemRemoved(roll->itemSlot);
-                        --roll->getLoot()->unlootedCount;
-                        player->StoreNewItem(dest, roll->itemid, true, item->randomPropertyId);
-                    }
-                    else{
-
-                        item->is_blocked = false;
-
-                        player->SendEquipError(msg, NULL, NULL, roll->itemid);
-                    }
+            if (player && player->GetSession())
+            {
+                ItemPosCountVec dest;
+                LootItem* item = &(roll->getLoot()->items[roll->itemSlot]);
+                InventoryResult msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, roll->itemid, item->count);
+                if (msg == EQUIP_ERR_OK)
+                {
+                    item->is_looted = true;
+                    roll->getLoot()->NotifyItemRemoved(roll->itemSlot);
+                    --roll->getLoot()->unlootedCount;
+                    player->StoreNewItem(dest, roll->itemid, true, item->randomPropertyId);
+                }
+                else
+                {
+                    item->is_blocked = false;
+                    player->SendEquipError(msg, NULL, NULL, roll->itemid);
                 }
             }
         }
@@ -812,6 +799,7 @@ void Group::CountTheRoll(Rolls::iterator& rollI)
         {
             uint8 maxresul = 0;
             ObjectGuid maxguid = (*roll->playerVote.begin()).first;
+            Player* player;
             RollVote rollvote = ROLL_PASS;                  // Fixed: Using uninitialized memory 'rollvote'
 
             Roll::PlayerVote::iterator itr;
@@ -829,25 +817,24 @@ void Group::CountTheRoll(Rolls::iterator& rollI)
                 }
             }
             SendLootRollWon(maxguid, maxresul, ROLL_GREED, *roll);
-            if( Player * player = sObjectMgr.GetPlayer(maxguid) ){
+            player = sObjectMgr.GetPlayer(maxguid);
 
-                if (player && player->GetSession()){
-
-                    ItemPosCountVec dest;
-                    LootItem* item = &(roll->getLoot()->items[roll->itemSlot]);
-                    InventoryResult msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, roll->itemid, item->count);
-                    if (msg == EQUIP_ERR_OK){
-
-                        item->is_looted = true;
-                        roll->getLoot()->NotifyItemRemoved(roll->itemSlot);
-                        --roll->getLoot()->unlootedCount;
-                        player->StoreNewItem(dest, roll->itemid, true, item->randomPropertyId);
-                    }
-                    else{
-
-                        item->is_blocked = false;
-                        player->SendEquipError(msg, NULL, NULL, roll->itemid);
-                    }
+            if (player && player->GetSession())
+            {
+                ItemPosCountVec dest;
+                LootItem* item = &(roll->getLoot()->items[roll->itemSlot]);
+                InventoryResult msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, roll->itemid, item->count);
+                if (msg == EQUIP_ERR_OK)
+                {
+                    item->is_looted = true;
+                    roll->getLoot()->NotifyItemRemoved(roll->itemSlot);
+                    --roll->getLoot()->unlootedCount;
+                    player->StoreNewItem(dest, roll->itemid, true, item->randomPropertyId);
+                }
+                else
+                {
+                    item->is_blocked = false;
+                    player->SendEquipError(msg, NULL, NULL, roll->itemid);
                 }
             }
         }
@@ -1020,10 +1007,10 @@ void Group::BroadcastReadyCheck(WorldPacket* packet)
 {
     for (GroupReference* itr = GetFirstMember(); itr != NULL; itr = itr->next())
     {
-        if( Player* pl = itr->getSource() )
-			if( pl->GetSession() )
-				if (IsLeader(pl->GetObjectGuid()) || IsAssistant(pl->GetObjectGuid()))
-					pl->GetSession()->SendPacket(packet);
+        Player* pl = itr->getSource();
+        if (pl && pl->GetSession())
+            if (IsLeader(pl->GetObjectGuid()) || IsAssistant(pl->GetObjectGuid()))
+                pl->GetSession()->SendPacket(packet);
     }
 }
 
@@ -1408,9 +1395,9 @@ void Group::UpdateLooterGuid(WorldObject* pSource, bool ifneed)
         if (ifneed)
         {
             // not update if only update if need and ok
-            if( Player* looter = ObjectAccessor::FindPlayer(guid_itr->guid) )
-				if( looter->IsWithinDist(pSource, sWorld.getConfig(CONFIG_FLOAT_GROUP_XP_DISTANCE), false) )
-					return;
+            Player* looter = ObjectAccessor::FindPlayer(guid_itr->guid);
+            if (looter && looter->IsWithinDist(pSource, sWorld.getConfig(CONFIG_FLOAT_GROUP_XP_DISTANCE), false))
+                return;
         }
         ++guid_itr;
     }

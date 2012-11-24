@@ -107,10 +107,8 @@ public:
 
     void AddAuction(AuctionEntry* ah)
     {
-		if( ah ){
-			MANGOS_ASSERT(ah);
-			AuctionsMap[ah->Id] = ah;
-		}
+        MANGOS_ASSERT(ah);
+        AuctionsMap[ah->Id] = ah;
     }
 
     AuctionEntry* GetAuction(uint32 id) const

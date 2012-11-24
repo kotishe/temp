@@ -475,11 +475,9 @@ void AuctionHouseMgr::LoadAuctions()
 
 void AuctionHouseMgr::AddAItem(Item* it)
 {
-	if( it ){
-		MANGOS_ASSERT(it);
-		MANGOS_ASSERT(mAitems.find(it->GetGUIDLow()) == mAitems.end());
-		mAitems[it->GetGUIDLow()] = it;
-	}
+    MANGOS_ASSERT(it);
+    MANGOS_ASSERT(mAitems.find(it->GetGUIDLow()) == mAitems.end());
+    mAitems[it->GetGUIDLow()] = it;
 }
 
 bool AuctionHouseMgr::RemoveAItem(uint32 id)

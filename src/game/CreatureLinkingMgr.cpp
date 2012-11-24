@@ -133,8 +133,8 @@ void CreatureLinkingMgr::LoadFromDB()
 
     if (!result)
     {
-        BarGoLink bar1(1);
-        bar1.step();
+        BarGoLink bar(1);
+        bar.step();
 
         sLog.outString(">> Table creature_linking is empty.");
         sLog.outString();
@@ -294,11 +294,9 @@ bool CreatureLinkingMgr::IsLinkedMaster(Creature* pCreature)
 // This function checks if the spawning of this NPC is dependend on other NPCs
 bool CreatureLinkingMgr::IsSpawnedByLinkedMob(Creature* pCreature)
 {
-	bool Linked = false;
-    if( CreatureLinkingInfo const* pInfo = CreatureLinkingMgr::GetLinkedTriggerInformation(pCreature) )
-		if( pInfo && pInfo->linkingFlag & (FLAG_CANT_SPAWN_IF_BOSS_DEAD | FLAG_CANT_SPAWN_IF_BOSS_ALIVE) && (pInfo->masterDBGuid || pInfo->searchRange) )
-			Linked = true;
-    return Linked;
+    CreatureLinkingInfo const* pInfo = CreatureLinkingMgr::GetLinkedTriggerInformation(pCreature);
+
+    return pInfo && pInfo->linkingFlag & (FLAG_CANT_SPAWN_IF_BOSS_DEAD | FLAG_CANT_SPAWN_IF_BOSS_ALIVE) && (pInfo->masterDBGuid || pInfo->searchRange);
 }
 
 // This gives the information of a linked NPC (describes action when its ActionTrigger triggers)
@@ -625,18 +623,18 @@ bool CreatureLinkingHolder::CanSpawn(Creature* pCreature)
 
     // Search for nearby master
     BossGuidMapBounds finds = m_masterGuid.equal_range(pInfo->masterId);
-    for (BossGuidMap::iterator itr = finds.first; itr != finds.second; ++itr){
-
-      if( Creature* pMaster = pCreature->GetMap()->GetCreature(itr->second) ){
-        if( IsSlaveInRangeOfBoss(pCreature, pMaster, pInfo->searchRange) ){
-          if (pInfo->linkingFlag & FLAG_CANT_SPAWN_IF_BOSS_DEAD)
-            return pMaster->isAlive();
-          else if (pInfo->linkingFlag & FLAG_CANT_SPAWN_IF_BOSS_ALIVE)
-            return !pMaster->isAlive();
-          else
-            return true;
+    for (BossGuidMap::iterator itr = finds.first; itr != finds.second; ++itr)
+    {
+        Creature* pMaster = pCreature->GetMap()->GetCreature(itr->second);
+        if (pMaster && IsSlaveInRangeOfBoss(pCreature, pMaster, pInfo->searchRange))
+        {
+            if (pInfo->linkingFlag & FLAG_CANT_SPAWN_IF_BOSS_DEAD)
+                return pMaster->isAlive();
+            else if (pInfo->linkingFlag & FLAG_CANT_SPAWN_IF_BOSS_ALIVE)
+                return !pMaster->isAlive();
+            else
+                return true;
         }
-      }
     }
 
     return true;                                            // local boss does not exist - spawn

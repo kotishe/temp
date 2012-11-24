@@ -132,9 +132,6 @@ ObjectAccessor::GetCorpseForPlayerGUID(ObjectGuid guid)
 void
 ObjectAccessor::RemoveCorpse(Corpse* corpse)
 {
-	if( !corpse )
-		return;
-
     MANGOS_ASSERT(corpse && corpse->GetType() != CORPSE_BONES);
 
     Guard guard(i_corpseGuard);
@@ -155,9 +152,6 @@ ObjectAccessor::RemoveCorpse(Corpse* corpse)
 void
 ObjectAccessor::AddCorpse(Corpse* corpse)
 {
-	if( !corpse )
-		return;
-
     MANGOS_ASSERT(corpse && corpse->GetType() != CORPSE_BONES);
 
     Guard guard(i_corpseGuard);

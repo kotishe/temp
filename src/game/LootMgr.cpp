@@ -250,9 +250,9 @@ bool LootStoreItem::Roll(bool rate) const
     if (mincountOrRef < 0)                                  // reference case
         return roll_chance_f(chance * (rate ? sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_ITEM_REFERENCED) : 1.0f));
 
-    float qualityModifier = 1.0;
-	if( ItemPrototype const* pProto = ObjectMgr::GetItemPrototype(itemid) )
-		qualityModifier = pProto && rate ? sWorld.getConfig(qualityToRate[pProto->Quality]) : 1.0f;
+    ItemPrototype const* pProto = ObjectMgr::GetItemPrototype(itemid);
+
+    float qualityModifier = pProto && rate ? sWorld.getConfig(qualityToRate[pProto->Quality]) : 1.0f;
 
     return roll_chance_f(chance * qualityModifier);
 }
@@ -457,17 +457,14 @@ bool Loot::FillLoot(uint32 loot_id, LootStore const& store, Player* loot_owner, 
     tab->Process(*this, store, store.IsRatesAllowed());     // Processing is done there, callback via Loot::AddItem()
 
     // Setting access rights for group loot case
-    if( Group* pGroup = loot_owner->GetGroup() ){
-		if (!personal ){
-			for (GroupReference* itr = pGroup->GetFirstMember(); itr != NULL; itr = itr->next())
-				if (Player* pl = itr->getSource())
-					FillNotNormalLootFor(pl);
-		}
-		else{
-			FillNotNormalLootFor(loot_owner);
-		}
+    Group* pGroup = loot_owner->GetGroup();
+    if (!personal && pGroup)
+    {
+        for (GroupReference* itr = pGroup->GetFirstMember(); itr != NULL; itr = itr->next())
+            if (Player* pl = itr->getSource())
+                FillNotNormalLootFor(pl);
+    }
     // ... for personal loot
-	}
     else
         FillNotNormalLootFor(loot_owner);
 

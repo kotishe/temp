@@ -1022,12 +1022,8 @@ uint8 Item::GetGemCountWithID(uint32 GemID) const
 
 bool Item::IsLimitedToAnotherMapOrZone(uint32 cur_mapId, uint32 cur_zoneId) const
 {
-	bool Limited = false;
-    if( ItemPrototype const* proto = GetProto() )
-		if( (proto->Map && proto->Map != cur_mapId) || (proto->Area && proto->Area != cur_zoneId) )
-			Limited = true;
-
-	return Limited;
+    ItemPrototype const* proto = GetProto();
+    return proto && ((proto->Map && proto->Map != cur_mapId) || (proto->Area && proto->Area != cur_zoneId));
 }
 
 // Though the client has the information in the item's data field,
