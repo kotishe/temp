@@ -97,8 +97,9 @@ void WorldSession::HandleAutostoreLootItemOpcode(WorldPacket& recv_data)
 				}
 
 				loot = &pCreature->loot;
-				break;
+
 			}
+            break;
         }
         default:
         {
@@ -189,14 +190,11 @@ void WorldSession::HandleLootMoneyOpcode(WorldPacket & /*recv_data*/)
     {
         case HIGHGUID_GAMEOBJECT:
         {
-            if( GameObject* pGameObject = GetPlayer()->GetMap()->GetGameObject(guid) ){
-
-				// not check distance for GO in case owned GO (fishing bobber case, for example)
-				if( pGameObject->GetOwnerGuid() == _player->GetObjectGuid() || 
-					pGameObject->IsWithinDistInMap(_player, INTERACTION_DISTANCE) )
-					pLoot = &pGameObject->loot;
-			}
-            break;
+          GameObject* pGameObject = GetPlayer()->GetMap()->GetGameObject(guid);
+          // not check distance for GO in case owned GO (fishing bobber case, for example)
+          if (pGameObject && (pGameObject->GetOwnerGuid() == _player->GetObjectGuid() || pGameObject->IsWithinDistInMap(_player, INTERACTION_DISTANCE)))
+            pLoot = &pGameObject->loot;
+          break;
         }
         case HIGHGUID_CORPSE:                               // remove insignia ONLY in BG
         {
