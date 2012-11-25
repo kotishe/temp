@@ -513,6 +513,25 @@ void Unit::DealDamageMods(Unit* pVictim, uint32& damage, uint32* absorb)
         damage = 0;
     }
 
+	// Paladin Blessed Life
+    AuraList const& BlessedLife = pVictim->GetAurasByType(SPELL_AURA_PROC_TRIGGER_SPELL);
+    for (AuraList::const_iterator i = BlessedLife.begin(); i != BlessedLife.end(); ++i){
+      switch( (*i)->GetSpellProto()->Id ){
+
+        case 31828: // Rank 1
+        case 31829: // Rank 2
+        case 31830: // Rank 3
+        {
+          int chance = (*i)->GetSpellProto()->procChance;
+          int roll = irand(0,100);
+          if( roll <= chance ){
+            damage /= 2;
+            break;
+          }
+        }
+      }
+    }
+
     uint32 originalDamage = damage;
 
     // Script Event damage Deal
