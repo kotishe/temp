@@ -2309,6 +2309,7 @@ enum DiminishingGroup
     DIMINISHING_SILENCE,                                    // From 2.3.0
     DIMINISHING_FREEZE,                                     // Hunter's Freezing Trap
     DIMINISHING_KNOCKOUT,                                   // Also with Sap, all Knockout mechanics are here
+    DIMINISHING_WARLOCK_SILENCE,
     DIMINISHING_BANISH,
     // Other
     // Don't Diminish, but limit duration to 10s

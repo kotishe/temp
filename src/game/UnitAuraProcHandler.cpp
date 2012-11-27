@@ -2141,8 +2141,27 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
         }
         // Finishing moves that add combo points
         case 14189: // Seal Fate (Netherblade set)
+        {
+          // custom cooldown processing case
+          // Need add combopoint AFTER finishing move (or they get dropped in finish phase)
+          if (Spell* spell = GetCurrentSpell(CURRENT_GENERIC_SPELL)){
+
+              if( cooldown && ((Player*)this)->HasSpellCooldown(trigger_spell_id) )
+                return SPELL_AURA_PROC_FAILED;
+
+              basepoints[0] = int32(1);
+              ((Player*)this)->CastCustomSpell(pVictim, 14189, &basepoints[0], NULL, NULL, true, NULL, triggeredByAura);
+
+              if( cooldown )
+                  ((Player*)this)->AddSpellCooldown(trigger_spell_id, 0, time(NULL) + cooldown );
+
+              return SPELL_AURA_PROC_OK;
+          }
+          return SPELL_AURA_PROC_FAILED;
+        }
         case 14157: // Ruthlessness
         {
+
             // Need add combopoint AFTER finishing move (or they get dropped in finish phase)
             if (Spell* spell = GetCurrentSpell(CURRENT_GENERIC_SPELL))
             {
