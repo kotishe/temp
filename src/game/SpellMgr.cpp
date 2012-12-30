@@ -3856,8 +3856,8 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
             if (spellproto->IsFitToFamilyMask(UI64LIT(0x00080000000)))
                 return DIMINISHING_LIMITONLY;
 			//Unstable affliction
-			if ( spellproto->IsFitToFamilyMask(UI64LIT(0x00000000100)) )
-				return DIMINISHING_SILENCE;
+            if ( spellproto->Id == 31117 )
+                return DIMINISHING_WARLOCK_SILENCE;
 			
             break;
         }
@@ -3913,6 +3913,8 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
         return DIMINISHING_BANISH;
     if (mechanic & (1 << (MECHANIC_HORROR - 1)))
         return DIMINISHING_DEATHCOIL;
+    if (mechanic & (1 << (DIMINISHING_WARLOCK_SILENCE - 1)))
+        return DIMINISHING_WARLOCK_SILENCE;
 
     return DIMINISHING_NONE;
 }
@@ -3936,6 +3938,7 @@ bool IsDiminishingReturnsGroupDurationLimited(DiminishingGroup group)
         case DIMINISHING_BLIND_CYCLONE:
         case DIMINISHING_BANISH:
         case DIMINISHING_LIMITONLY:
+        case DIMINISHING_WARLOCK_SILENCE:
             return true;
         default:
             return false;
@@ -3964,6 +3967,7 @@ DiminishingReturnsType GetDiminishingReturnsGroupType(DiminishingGroup group)
         case DIMINISHING_BANISH:
 		case DIMINISHING_WARLOCK_FEAR:
         case DIMINISHING_KNOCKOUT:
+        case DIMINISHING_WARLOCK_SILENCE:
             return DRTYPE_PLAYER;
         default:
             break;

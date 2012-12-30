@@ -2963,12 +2963,23 @@ float Unit::MeleeMissChanceCalc(const Unit* pVictim, WeaponAttackType attType) c
 
     int32 skillDiff = int32(pVictim->GetDefenseSkillValue(this)) - int32(GetWeaponSkillValue(attType, pVictim));
 
+	DEBUG_LOG("===============================================");
+	DEBUG_LOG("Victim Def = %d", int32(pVictim->GetDefenseSkillValue(this)));
+	DEBUG_LOG("===============================================");
+	DEBUG_LOG("===============================================");
+	DEBUG_LOG("Attacker Skill = %d", int32(GetWeaponSkillValue(attType, pVictim)));
+	DEBUG_LOG("===============================================");
+
     if( skillDiff > 10 )
-        missChance += ( skillDiff - 10 ) * 0.4f + 2.0f;
+        missChance += ( skillDiff - 10 ) * 0.04f + 2.0f;
     else if( skillDiff < -10 )
-        missChance += ( skillDiff + 10 ) * 0.4f - 2.0f;
+        missChance += ( skillDiff + 10 ) * 0.04f - 2.0f;
     else
         missChance -= skillDiff * 0.1f;
+
+	DEBUG_LOG("===============================================");
+	DEBUG_LOG("miss chance = %f", missChance);
+	DEBUG_LOG("===============================================");
 
     // Hit chance bonus from attacker based on ratings and auras
     if (attType == RANGED_ATTACK)

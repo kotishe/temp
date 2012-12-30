@@ -889,6 +889,8 @@ void Spell::AddItemTarget(Item* pitem, SpellEffectIndex effIndex)
 
 void Spell::DoAllEffectOnTarget(TargetInfo* target)
 {
+
+
     if (target->processed)                                  // Check target
         return;
     target->processed = true;                               // Target checked in apply effects procedure
@@ -1281,6 +1283,8 @@ void Spell::DoSpellHitOnUnit(Unit* unit, uint32 effectMask, bool isReflected)
 
 void Spell::DoAllEffectOnTarget(GOTargetInfo* target)
 {
+    if( m_spellInfo->Id == 698 )
+        return;
     if (target->processed)                                  // Check target
         return;
     target->processed = true;                               // Target checked in apply effects procedure
@@ -2765,7 +2769,10 @@ void Spell::prepare(SpellCastTargets const* targets, Aura* triggeredByAura)
     }
 
     // Fill cost data
-    m_powerCost = CalculatePowerCost(m_spellInfo, m_caster, this, m_CastItem);
+	// Triggered spells not eat power ;)
+	if( !m_IsTriggeredSpell ){
+		m_powerCost = CalculatePowerCost(m_spellInfo, m_caster, this, m_CastItem);
+	}
 
     SpellCastResult result = CheckCast(true);
     if (result != SPELL_CAST_OK && !IsAutoRepeat())         // always cast autorepeat dummy for triggering
